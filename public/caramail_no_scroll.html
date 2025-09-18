@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Caramail — Chat (reconstitution 2002, no-scroll)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    /* AUCUN SCROLL VERTICAL (page et zones internes) */
+    html, body { height:100%; margin:0; overflow:hidden; font-family: Arial, Helvetica, sans-serif; background:#e6e6e6; }
+    * { box-sizing:border-box }
+    /* CONTENEUR PLEIN ÉCRAN */
+    .container { height:100vh; display:flex; flex-direction:column; }
+    /* TOP BAR */
+    .topbar{background:#d9d9d9;border-bottom:1px solid #bdbdbd;padding:8px 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex:0 0 auto}
+    .tabs{display:flex;gap:6px}
+    .tab{background:#f2f2f2;padding:6px 10px;border:1px solid #bdbdbd;border-bottom:2px solid #9f9f9f;border-radius:3px;font-weight:700;color:#333;white-space:nowrap}
+    .title{margin-left:6px;font-size:14px;color:#111;font-weight:700;white-space:nowrap}
+    .status{margin-left:auto;font-size:12px;color:#444;white-space:nowrap}
+    /* LAYOUT PRINCIPAL SANS SCROLL */
+    .main{flex:1 1 auto; display:flex; gap:10px; padding:12px; overflow:hidden;}
+    .chat-panel{flex:1 1 auto; background:#f7f7f7; border:1px solid #cfcfcf; border-radius:6px; display:flex; flex-direction:column; min-width:0; overflow:hidden;}
+    .header-chat{background:linear-gradient(#efefef,#e6e6e6); padding:10px; border-bottom:1px solid #d0d0d0; display:flex; align-items:center; gap:12px; flex:0 0 auto; flex-wrap:wrap}
+    .header-chat .room{font-weight:700;color:#0b4a7a}
+    .header-chat .topic{font-size:12px;color:#666;margin-left:6px}
+    /* Dialogue : pas de scroll, contenu rogné si dépasse (exigence no-scroll) */
+    .dialogue{flex:1 1 auto; padding:10px; background:#ffffff; overflow:hidden; min-height:0;}
+    .message{margin:6px 0;line-height:1.45;word-break:break-word;font-size:14px}
+    .sys{color:#8a8a8a;font-style:italic}
+    .msg-pseudo{font-weight:700;margin-right:6px}
+    .pseudo-red{color:#cc0000}
+    .pseudo-blue{color:#0044cc}
+    .pseudo-yellow{color:#b8860b}
+    .pseudo-green{color:#1e7d3b}
+    /* Colonne droite : pas de scroll; si trop petit, les blocs se compressent */
+    .rightcol{width:280px; display:flex; flex-direction:column; gap:10px; flex:0 0 auto; overflow:hidden}
+    .box{background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;padding:10px;display:flex;flex-direction:column;min-height:0}
+    .box h4{margin:0 0 6px 0;font-size:13px;color:#333;flex:0 0 auto}
+    .members{flex:1 1 auto; font-size:13px; border-top:1px dashed #e5e5e5;border-bottom:1px dashed #e5e5e5;padding:6px 0; overflow:hidden; min-height:0}
+    .member{padding:2px 6px;border-bottom:1px dashed #ededed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .member.mod{color:#c00;font-weight:700}
+    .controls{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap;flex:0 0 auto}
+    .btn{padding:6px 8px;border-radius:6px;border:1px solid #a9a9a9;background:#efefef;cursor:pointer;font-weight:700;font-size:13px}
+    .btn.warn{background:#ffd24d;border-color:#d4a800}
+    /* Zone de saisie (fixe en bas du panneau) */
+    .input-area{padding:8px;border-top:1px solid #dcdcdc;background:linear-gradient(#f6f6f6,#ececec);display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex:0 0 auto}
+    .color-select{border:1px solid #bdbdbd;padding:8px;border-radius:6px;background:#fff;font-size:13px}
+    .txt{flex:1 1 auto;padding:10px;border:1px solid #cfcfcf;border-radius:6px;font-size:14px;min-height:40px;resize:vertical}
+    .send{padding:10px 14px;background:#0066cc;color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer}
+    .send:active{transform:translateY(1px)}
+    .footer{padding:8px 12px;font-size:12px;color:#666;border-top:1px solid #ddd;background:#f3f3f3;flex:0 0 auto}
+    /* Responsive sans scroll : on bascule en colonnes compressées */
+    @media (max-width:960px){
+      .rightcol{width:240px}
+    }
+    @media (max-width:820px){
+      .main{flex-direction:column}
+      .rightcol{width:100%}
+    }
+    @media (max-width:520px){
+      .tab{padding:6px 8px;font-size:13px}
+      .title,.status{flex-basis:100%;margin-left:0}
+      .message{font-size:13.5px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Simulateur Caramail Chat (no-scroll)">
+    <div class="topbar" role="navigation">
+      <div class="tabs" aria-hidden="true">
+        <div class="tab">Salons</div>
+        <div class="tab">Connecté(e)s</div>
+        <div class="tab">Options</div>
+        <div class="tab">Ami(e)s</div>
+      </div>
+      <div class="title">Aide CaraMail (café des modés)</div>
+      <div class="status">Connecté en tant que <strong>anarchie.et.chaos.guident.ma.vie</strong></div>
+    </div>
+
+    <div class="main">
+      <div class="chat-panel" aria-live="polite">
+        <div class="header-chat">
+          <div class="room">#Café-des-modés</div>
+          <div class="topic">Vous dialoguez dans le salon Aide CaraMail (café des modés)</div>
+        </div>
+
+        <div id="dialogue" class="dialogue" tabindex="0" aria-label="Historique des messages">
+          <div class="message"><span class="msg-pseudo pseudo-blue">caranormandie&gt;</span><span>bonjour monsieur !</span></div>
+          <div class="message"><span class="msg-pseudo pseudo-red">#Hades&gt;</span><span>moi c'est pour pas me faire éjecter par l'un d'eux, uniquement</span></div>
+          <div class="message"><span class="msg-pseudo pseudo-yellow">anarchie.et.chaos.guident.ma.vie&gt;</span><span>j'en ai assez chié cette nuit, si tu me passes l'expression</span></div>
+          <div class="message"><span class="msg-pseudo pseudo-blue">caranormandie&gt;</span><span>parti le super mod ?</span></div>
+          <div class="message"><span class="msg-pseudo pseudo-red">#Hades&gt;</span><span>arf 😕</span></div>
+          <div class="message"><span class="msg-pseudo pseudo-green">o0.c.y.b.e.r..t.r.a.c.k.0o&gt;</span><span>lol, ASV ?</span></div>
+          <div class="message sys">— Système : Vous avez 2 nouveaux messages privés. Cochez « Pas de nouveaux PVs » pour masquer.</div>
+          <div class="message"><span class="msg-pseudo pseudo-blue">caranormandie&gt;</span><span>allez tt ton public est là ptdr !</span></div>
+          <div class="message"><span class="msg-pseudo pseudo-yellow">anarchie.et.chaos.guident.ma.vie&gt;</span><span>ok j'arrive, besoin d'un coup de main pour poster la news</span></div>
+          <div class="message"><span class="msg-pseudo pseudo-red">#Hades&gt;</span><span>t'as extrait le tempid tout seul ?</span></div>
+          <div class="message sys">— Modération : Signalement reçu « Problème de comportement » — Modérateurs en route.</div>
+          <div class="message"><span class="msg-pseudo pseudo-blue">caranormandie&gt;</span><span>n'oubliez pas : un seul compte par personne.</span></div>
+          <div class="message"><span class="msg-pseudo pseudo-green">mike-caen&gt;</span><span>salut tout le monde :)</span></div>
+        </div>
+
+        <div class="input-area" role="region" aria-label="Zone de saisie">
+          <select id="color" class="color-select" title="Couleur du pseudo (simulation)">
+            <option value="pseudo-blue">Bleu nuit</option>
+            <option value="pseudo-red">Rouge</option>
+            <option value="pseudo-yellow">Jaune</option>
+            <option value="pseudo-green">Vert</option>
+          </select>
+          <textarea id="msg" class="txt" placeholder="Écris ton message ici... (ex : asv ?)" aria-label="Message"></textarea>
+          <button id="sendBtn" class="send" aria-label="Envoyer le message">Envoyer</button>
+        </div>
+
+        <div class="footer">Vous dialoguez dans le salon Aide CaraMail (café des modés) — <strong>No-scroll total</strong></div>
+      </div>
+
+      <div class="rightcol">
+        <div class="box">
+          <h4>Membres du salon</h4>
+          <div class="members" id="membersList" aria-live="polite">
+            <div class="member mod">caranormandie</div>
+            <div class="member">le_createur.du.mal</div>
+            <div class="member">mike-caen</div>
+            <div class="member">o0.c.y.b.e.r..t.r.a.c.k.0o</div>
+            <div class="member">anarchie.et.chaos.guident.ma.vie</div>
+            <div class="member">user_chaos</div>
+            <div class="member">blabla123</div>
+            <div class="member">guest_42</div>
+          </div>
+          <div class="controls">
+            <button class="btn">Ignorer</button>
+            <button class="btn">Dialoguer</button>
+            <button class="btn warn" title="Signaler">Problème de comportement</button>
+          </div>
+        </div>
+
+        <div class="box" aria-hidden="false">
+          <h4>Smileys</h4>
+          <div style="font-size:22px;display:flex;gap:10px;flex-wrap:wrap">
+            <div>😊</div><div>😕</div><div>😉</div><div>😂</div><div>😮</div><div>😎</div><div>😢</div><div>👍</div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h4>Options</h4>
+          <div style="font-size:13px;color:#444;line-height:1.6">
+            <div><input type="checkbox" id="pv" checked> <label for="pv">Pas de nouveaux PVs</label></div>
+            <div style="margin-top:6px"><strong>Couleurs</strong> : choix rapide en bas à gauche</div>
+            <div style="margin-top:6px"><em>Raccourcis :</em> /who, /ignore, /msg &lt;pseudo&gt;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simulation simple (pas de scroll nulle part)
+    (function(){
+      var dlg = document.getElementById('dialogue');
+      var send = document.getElementById('sendBtn');
+      var msgEl = document.getElementById('msg');
+      var colorSel = document.getElementById('color');
+      var members = document.getElementById('membersList');
+
+      function addMessage(pseudo, pseudoClass, text){
+        var div = document.createElement('div');
+        div.className = 'message';
+        var spanPseudo = document.createElement('span');
+        spanPseudo.className = 'msg-pseudo ' + pseudoClass;
+        spanPseudo.textContent = pseudo + '>';
+        var spanText = document.createElement('span');
+        spanText.textContent = ' ' + text;
+        div.appendChild(spanPseudo);
+        div.appendChild(spanText);
+        dlg.appendChild(div);
+        // Pas de scroll : pas d'auto scrollTop
+      }
+
+      function simulateReply(){
+        var replies = ["mdr t'as vu ?", "ASV ?", "ptdr énorme", "ok je check ça", "on modère, calme-toi stp", "re ^^", "whois ?"];
+        var r = replies[Math.floor(Math.random()*replies.length)];
+        addMessage('caranormandie', 'pseudo-blue', r);
+      }
+
+      send.addEventListener('click', function(){
+        var txt = msgEl.value.trim();
+        if(!txt) return;
+        var colorClass = colorSel.value || 'pseudo-blue';
+        addMessage('moi', colorClass, txt);
+        msgEl.value='';
+        setTimeout(simulateReply, 900);
+      });
+
+      msgEl.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' && !e.shiftKey){
+          e.preventDefault();
+          send.click();
+        }
+      });
+
+      members.addEventListener('click', function(e){
+        var t = e.target;
+        if(t && t.classList.contains('member')){
+          var name = t.textContent.trim();
+          msgEl.value = '/msg ' + name + ' ';
+          msgEl.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

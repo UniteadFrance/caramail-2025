@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>CaraMail — Lancer PV (popup)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef1f7;color:#0f1320;display:grid;place-items:center;min-height:100vh}
+    .card{background:#fff;border:1px solid #dfe6f2;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.08);padding:22px;max-width:420px}
+    .btn{display:inline-block;margin-top:10px;padding:10px 16px;border:none;border-radius:10px;background:#0b48c9;color:#fff;font-weight:800;cursor:pointer}
+    .input{width:100%;padding:10px 12px;border:1px solid #cfd7e6;border-radius:10px;margin:6px 0}
+    small{color:#5a6a8e}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 style="margin:0 0 8px 0;font-size:20px">Message privé (popup)</h1>
+    <p style="margin:0 0 10px 0">Entre ton pseudo et celui de ton contact, puis clique “Ouvrir la fenêtre PV”.</p>
+    <input id="me" class="input" placeholder="Mon pseudo" value="moi">
+    <input id="to" class="input" placeholder="Pseudo du contact" value="caranormandie">
+    <button class="btn" onclick="openPV()">Ouvrir la fenêtre PV</button>
+    <p><small>Astuce : la fenêtre s’ouvrira centrée (≈ 460×640).</small></p>
+  </div>
+  <script>
+    function openPV(){
+      const me = encodeURIComponent(document.getElementById('me').value||'moi');
+      const to = encodeURIComponent(document.getElementById('to').value||'contact');
+      const w = 460, h = 640;
+      const y = Math.max(0, Math.round((screen.height - h)/2));
+      const x = Math.max(0, Math.round((screen.width - w)/2));
+      window.open(`caramail_pv_popup.html?me=${me}&to=${to}`, 'pvwin',
+        `width=${w},height=${h},left=${x},top=${y},resizable=yes,scrollbars=no,toolbar=no,location=no,status=no,menubar=no`);
+    }
+  </script>
+</body>
+</html>

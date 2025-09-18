@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Test CaraChat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:20px}
+    #log{border:1px solid #ccc;border-radius:8px;padding:10px;min-height:160px;max-width:680px}
+    .line{margin:6px 0}
+    .me{color:#0047cc}
+    .other{color:#cc0000}
+    form{margin-top:10px;display:flex;gap:8px;max-width:680px}
+    input,button{padding:10px;border-radius:8px;border:1px solid #ccc}
+    input{flex:1}
+    button{background:#0066cc;color:#fff;border:none;font-weight:800;cursor:pointer}
+  </style>
+</head>
+<body>
+  <h1>Test CaraChat (Socket.IO)</h1>
+  <div id="log" aria-live="polite"></div>
+  <form id="form">
+    <input id="msg" placeholder="Écris un message…">
+    <button>Envoyer</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const log = document.getElementById('log');
+    const form = document.getElementById('form');
+    const msg = document.getElementById('msg');
+
+    function line(text, cls){
+      const div = document.createElement('div');
+      div.className = 'line ' + (cls||'');
+      div.textContent = text;
+      log.appendChild(div);
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const txt = msg.value.trim();
+      if(!txt) return;
+      socket.emit('chat message', txt);
+      line('moi > ' + txt, 'me');
+      msg.value='';
+    });
+
+    socket.on('chat message', (txt) => {
+      // Avoid echo marking as "other" when it's mine; keep simple for test
+      line('autre > ' + txt, 'other');
+    });
+
+    line('Connecté. Ouvre un 2ᵉ onglet sur la même page pour tester en temps réel.');
+  </script>
+  <script src="/caramail_nav.js"></script>
+</body>
+</html>

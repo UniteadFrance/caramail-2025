@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>CaraMail — Salons</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e6e6e6;color:#111}
+    a{color:#0047cc;text-decoration:underline}
+    .wrap{min-height:100vh;display:flex;flex-direction:column}
+
+    /* Top tabs old-school */
+    .topbar{background:#cfcfcf;border-bottom:1px solid #9c9c9c;display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;padding:6px 10px}
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;position:relative}
+    .tabs:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:#b5b5b5}
+    .tab{background:#e9e9e9;padding:6px 10px;border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #8f8f8f;border-bottom:1px solid #8f8f8f;border-radius:4px 4px 0 0;font-weight:700;white-space:nowrap}
+    .tab.active{background:#fff;border-bottom-color:#fff}
+    .tab.active .tab-label{color:#0047cc;text-decoration:underline}
+    .status{margin-left:auto;padding-bottom:6px;font-size:12px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+
+    /* Container */
+    .container{max-width:1080px;margin:0 auto;padding:16px}
+    h1{font-size:20px;margin:8px 0 14px}
+    .grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+    @media(max-width:900px){ .grid{grid-template-columns:1fr} .status{flex-basis:100%;max-width:100%} }
+
+    /* Left: list of rooms */
+    .card{background:#fff;border:1px solid #dfe3ec;border-radius:10px;padding:14px;box-shadow:0 12px 36px rgba(0,0,0,.06)}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+    .input{padding:10px;border:1px solid #cfd7e6;border-radius:8px;font-size:15px;min-width:0}
+    .select{padding:10px;border:1px solid #cfd7e6;border-radius:8px;font-size:15px;background:#fff}
+    .btn{padding:10px 14px;border:none;border-radius:8px;background:#0066cc;color:#fff;font-weight:800;cursor:pointer}
+    .btn.ghost{background:#efefef;color:#111;border:1px solid #c7ccd6}
+    .hint{font-size:12px;color:#5a6a8e}
+    .rooms{margin-top:8px;border-top:1px dashed #cfd7e6}
+    .row{display:grid;grid-template-columns:1.6fr 1fr 120px;gap:10px;align-items:center;padding:12px 0;border-bottom:1px dashed #edf0f6}
+    .rname{font-weight:800;overflow-wrap:anywhere}
+    .desc{color:#445274;font-size:13px;margin-top:2px}
+    .badge{display:inline-block;padding:4px 8px;border:1px solid #dfe3ec;border-radius:999px;background:#f7f9ff;font-size:12px;margin-right:6px}
+    .count{font-weight:700}
+    .lock{display:inline-block;vertical-align:middle;font-size:12px;padding:2px 6px;border-radius:999px;border:1px solid #ffd9a6;background:#fff4e0;color:#8a5000;margin-left:6px}
+    .row .btn{justify-self:end}
+    @media(max-width:760px){
+      .row{grid-template-columns:1fr}
+      .row .btn{width:100%;justify-self:stretch}
+    }
+
+    /* Right: create/join panel */
+    .side .card + .card{margin-top:14px}
+    .label{font-weight:700;margin-top:8px}
+    .full{width:100%}
+    .muted{color:#5a6a8e;font-size:12px;margin-top:6px}
+
+    footer{margin-top:auto;border-top:1px solid #dcdcdc;background:#f3f3f3}
+    .foot{max-width:1080px;margin:0 auto;padding:12px;color:#555;font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="tabs" aria-label="Onglets">
+        <div class="tab active"><span class="tab-label">Salons</span></div>
+        <div class="tab"><span class="tab-label">PV</span></div>
+        <div class="tab"><span class="tab-label">Amis</span></div>
+        <div class="tab"><span class="tab-label">Mon compte</span></div>
+        <div class="tab"><span class="tab-label">Utilisateurs bloqués</span></div>
+      </div>
+      <div class="status">Connecté en tant que <strong>moi@caramail.com</strong></div>
+    </div>
+
+    <main class="container">
+      <h1>Salons publics</h1>
+      <div class="grid">
+        <section class="card">
+          <div class="toolbar">
+            <input id="q" class="input" placeholder="Rechercher un salon (ex: musique, tech, caen)…" style="flex:1">
+            <select id="cat" class="select">
+              <option value="all">Toutes catégories</option>
+              <option value="general">Général</option>
+              <option value="entraide">Entraide</option>
+              <option value="loisirs">Loisirs</option>
+              <option value="region">Région</option>
+            </select>
+            <button class="btn ghost" id="clear">Réinitialiser</button>
+          </div>
+          <div class="rooms" id="rooms"></div>
+          <div class="hint" id="hint"></div>
+        </section>
+
+        <aside class="side">
+          <section class="card">
+            <h2 style="margin:0 0 8px">Créer un salon</h2>
+            <label class="label" for="name">Nom du salon</label>
+            <input id="name" class="input full" placeholder="ex: #nostalgie-2002">
+            <label class="label" for="category">Catégorie</label>
+            <select id="category" class="select full">
+              <option value="general">Général</option>
+              <option value="entraide">Entraide</option>
+              <option value="loisirs">Loisirs</option>
+              <option value="region">Région</option>
+            </select>
+            <div style="margin-top:8px">
+              <label><input type="checkbox" id="private"> Privé (mot de passe)</label>
+            </div>
+            <div id="pwWrap" style="display:none;margin-top:8px">
+              <label class="label" for="pw">Mot de passe</label>
+              <input id="pw" class="input full" placeholder="Mot de passe du salon">
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" id="create">Créer</button>
+              <button class="btn ghost" id="reset">Réinitialiser</button>
+            </div>
+            <div class="muted" id="createMsg"></div>
+          </section>
+
+          <section class="card">
+            <h2 style="margin:0 0 8px">Rejoindre un salon privé</h2>
+            <input id="joinName" class="input full" placeholder="Nom du salon privé">
+            <input id="joinPw" class="input full" placeholder="Mot de passe">
+            <div style="margin-top:10px">
+              <button class="btn" id="joinBtn" style="width:100%">Rejoindre</button>
+            </div>
+            <div class="muted">Besoin d’un lien d’invitation ? Demandez-le au créateur du salon.</div>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer>
+      <div class="foot">
+        © 2025 CaraMail — <a href="#">Mentions légales</a> · <a href="#">Confidentialité</a> · <a href="#">Cookies</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Demo data
+    const allRooms = [
+      { name:'#cafe-des-modes', cat:'general', desc:'Aide CaraMail (café des modés)', count:152 },
+      { name:'#nostalgie-2002', cat:'loisirs', desc:'Souvenirs Caramail, vieilles interfaces, kitsch', count:87 },
+      { name:'#entraide-web', cat:'entraide', desc:'HTML/CSS/JS pour les nuls & moins nuls', count:64 },
+      { name:'#caen', cat:'region', desc:'Normandie / Caen — bons plans & IRL', count:23 },
+      { name:'#musique', cat:'loisirs', desc:'Découvertes, partages & écoutes', count:45 },
+      { name:'#dev-frontend', cat:'entraide', desc:'Questions React/Vue/Vanilla — entraide bienveillante', count:71 },
+      { name:'#cine-series', cat:'loisirs', desc:'Dernières sorties, vieux classiques, débats', count:30 },
+      { name:'#bureau-aide', cat:'general', desc:'Nouveaux arrivants — Posez vos questions', count:10 },
+      { name:'#region-paris', cat:'region', desc:'Île‑de‑France — rdv & bons plans', count:28 },
+      { name:'#makers', cat:'loisirs', desc:'Bricolage, DIY, imprimantes 3D', count:12 },
+      { name:'#entraide-privacy', cat:'entraide', desc:'RGPD, vie privée, sécurité', count:18 },
+      { name:'#jv', cat:'loisirs', desc:'Jeux vidéo — multi & rétro', count:54 },
+      { name:'#priv-club', cat:'loisirs', desc:'Salon privé (sur invitation)', count:9, locked:true }
+    ];
+
+    const roomsEl = document.getElementById('rooms');
+    const qEl = document.getElementById('q');
+    const catEl = document.getElementById('cat');
+    const clearBtn = document.getElementById('clear');
+    const hintEl = document.getElementById('hint');
+
+    function renderRooms(){
+      const q = (qEl.value||'').toLowerCase();
+      const cat = catEl.value;
+      const filtered = allRooms.filter(r => {
+        const matchQ = !q || r.name.toLowerCase().includes(q) || (r.desc||'').toLowerCase().includes(q);
+        const matchCat = cat==='all' || r.cat===cat;
+        return matchQ && matchCat;
+      });
+      roomsEl.innerHTML = '';
+      if(filtered.length === 0){
+        hintEl.textContent = 'Aucun salon ne correspond à votre recherche.';
+        return;
+      } else {
+        hintEl.textContent = '';
+      }
+      filtered.forEach(r => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <div>
+            <div class="rname">${r.name} ${r.locked?'<span class="lock">privé</span>':''}</div>
+            <div class="desc">${r.desc||''}</div>
+          </div>
+          <div>
+            <span class="badge">${r.cat}</span>
+            <span class="badge count">${r.count} en ligne</span>
+          </div>
+          <button class="btn">${r.locked?'Demander accès':'Rejoindre'}</button>
+        `;
+        row.querySelector('.btn').addEventListener('click', () => {
+          if(r.locked){ alert('Ce salon est privé. Demandez un lien au créateur. (démo)'); }
+          else { alert('Entrée dans ' + r.name + ' (démo)'); }
+        });
+        roomsEl.appendChild(row);
+      });
+    }
+
+    qEl.addEventListener('input', renderRooms);
+    catEl.addEventListener('change', renderRooms);
+    clearBtn.addEventListener('click', () => { qEl.value=''; catEl.value='all'; renderRooms(); });
+
+    // Create room
+    const privateEl = document.getElementById('private');
+    const pwWrap = document.getElementById('pwWrap');
+    const createBtn = document.getElementById('create');
+    const resetBtn = document.getElementById('reset');
+    const nameEl = document.getElementById('name');
+    const cat2El = document.getElementById('category');
+    const pwEl = document.getElementById('pw');
+    const createMsg = document.getElementById('createMsg');
+
+    privateEl.addEventListener('change', () => {
+      pwWrap.style.display = privateEl.checked ? 'block':'none';
+    });
+
+    function flash(el, txt){ el.textContent = txt; setTimeout(()=>el.textContent='', 1800); }
+
+    createBtn.addEventListener('click', () => {
+      const name = (nameEl.value||'').trim();
+      if(!name || !name.startsWith('#')){ flash(createMsg,'Nom requis (commence par #)'); return; }
+      const cat = cat2El.value;
+      const locked = !!privateEl.checked;
+      allRooms.unshift({ name, cat, desc:'Nouveau salon', count:1, locked });
+      nameEl.value=''; privateEl.checked=false; pwWrap.style.display='none'; pwEl.value='';
+      renderRooms(); flash(createMsg,'Salon créé (démo)');
+    });
+
+    resetBtn.addEventListener('click', () => {
+      nameEl.value=''; privateEl.checked=false; pwWrap.style.display='none'; pwEl.value=''; cat2El.value='general'; createMsg.textContent='';
+    });
+
+    // Join private
+    const joinName = document.getElementById('joinName');
+    const joinPw = document.getElementById('joinPw');
+    const joinBtn = document.getElementById('joinBtn');
+    joinBtn.addEventListener('click', () => {
+      if(!joinName.value.trim() || !joinPw.value.trim()){ alert('Nom et mot de passe requis. (démo)'); return; }
+      alert('Tentative de connexion au salon privé "'+joinName.value+'". (démo)');
+    });
+
+    renderRooms();
+  </script>
+  <script src="/caramail_nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>CaraMail — Accueil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CaraMail — page d’accueil ultra épurée. Créez votre adresse et accédez à votre messagerie.">
+  <style>
+    /* RESET & BASE (inline CSS only, no external deps) */
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#0f1320}
+    a{color:#0b48c9;text-decoration:none}
+    a:hover{text-decoration:underline}
+    /* LAYOUT */
+    .wrap{min-height:100vh;display:flex;flex-direction:column}
+    header{padding:18px}
+    .container{max-width:980px;margin:0 auto;padding:0 16px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 35%, #fff 0 28%, #c21d1d 29% 31%, #0b48c9 32% 100%);box-shadow:0 1px 0 rgba(0,0,0,.2) inset, 0 2px 8px rgba(0,0,0,.08)}
+    .logotxt{font-weight:900;letter-spacing:.5px}
+    /* HERO MINIMAL */
+    .hero{flex:1;display:grid;place-items:center;padding:28px 16px}
+    .panel{
+      width:min(540px, 92vw);
+      background:#fff;
+      border:1px solid #e5e9f2;
+      border-radius:22px;
+      box-shadow:0 20px 60px rgba(11,17,40,.08);
+      padding:22px 22px 18px;
+    }
+    .circle{
+      width:160px;height:160px;margin:0 auto 12px;
+      background:radial-gradient(circle at 55% 45%, #fff 0 64%, #f9f2e5 65% 100%);
+      border-radius:50%;
+      border:10px solid #d21b1b;
+      position:relative;
+      box-shadow:0 2px 0 #b10e0e inset, 0 10px 30px rgba(0,0,0,.05);
+    }
+    .orbit{
+      position:absolute;top:-18px;right:-22px;width:74px;height:74px;background:linear-gradient(160deg,#0b48c9,#08388f);border-radius:20px 40px 40px 28px;transform:rotate(20deg)
+    }
+    .orbit2{
+      position:absolute;bottom:-18px;left:-22px;width:82px;height:82px;background:linear-gradient(180deg,#0b48c9,#072e78);border-radius:40px 20px 28px 40px;transform:rotate(-18deg)
+    }
+    .form{display:grid;gap:10px;margin:10px auto 6px;max-width:360px}
+    .input{padding:10px 12px;border:1px solid #cfd7e6;border-radius:10px;font-size:16px;width:100%;outline:none}
+    .btn{padding:10px 14px;border:none;border-radius:10px;background:#0b48c9;color:#fff;font-weight:800;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .links{display:flex;justify-content:center;gap:14px;margin-top:8px;font-size:13px}
+    .note{margin-top:10px;text-align:center;color:#4c5878;font-size:12px}
+    /* RUBRIQUES */
+    .rubriques{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+    .rubrique{background:#f9fbff;border:1px dashed #cfd7e6;border-radius:14px;padding:12px}
+    .rubrique h3{margin:0 0 6px 0;font-size:15px}
+    .rubrique p{margin:0;font-size:13px;color:#556086}
+    /* FOOTER */
+    footer{margin-top:24px;border-top:1px solid #e6eaf2;background:#fafcff}
+    .foot{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:18px;padding:18px 16px}
+    .foot h4{margin:0 0 6px 0;font-size:14px}
+    .foot a{display:block;margin:4px 0;color:#30406a;font-size:13px}
+    .copy{padding:12px 16px;color:#6b789c;font-size:12px;border-top:1px dotted #e0e6f2}
+    /* RESPONSIVE */
+    @media (max-width:820px){
+      .rubriques{grid-template-columns:1fr 1fr}
+      .foot{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:520px){
+      .rubriques{grid-template-columns:1fr}
+      .foot{grid-template-columns:1fr}
+      .circle{width:140px;height:140px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="container brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="logotxt">CaraMail</div>
+      </div>
+    </header>
+
+    <main class="hero">
+      <section class="panel" aria-label="Connexion ou création de compte">
+        <div class="circle" aria-hidden="true">
+          <div class="orbit"></div>
+          <div class="orbit2"></div>
+        </div>
+        <form class="form" onsubmit="event.preventDefault();alert('Démo — connexion/inscription non active');">
+          <input class="input" placeholder="Identifiant (ex: ton.pseudo)" aria-label="Identifiant">
+          <input class="input" type="password" placeholder="Mot de passe" aria-label="Mot de passe">
+          <button class="btn" type="submit">Entrer</button>
+        </form>
+        <div class="links">
+          <a href="#creer">Créer un compte gratuit</a>
+          <span>·</span>
+          <a href="#aide">Aide</a>
+        </div>
+        <div class="note">Sobre, rapide, sans pub ciblée. Serveurs UE. RGPD.</div>
+
+        <div class="rubriques" aria-label="Rubriques">
+          <div class="rubrique">
+            <h3>Messagerie</h3>
+            <p>Webmail épuré, IMAP/POP/SMTP standard, pièces jointes 100&nbsp;Mo.</p>
+          </div>
+          <div class="rubrique">
+            <h3>Tchat</h3>
+            <p>Salons publics/privés, messages privés, modération humaine.</p>
+          </div>
+          <div class="rubrique">
+            <h3>Communautés</h3>
+            <p>Forums 2000’s revisités, profils sobres, événements.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container foot">
+        <div>
+          <h4>CaraMail</h4>
+          <a href="#apropos">À propos</a>
+          <a href="#presse">Presse</a>
+          <a href="#status">Status service</a>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <a href="#aide">Centre d’aide</a>
+          <a href="#securite">Sécurité</a>
+          <a href="#signalements">Signalements</a>
+        </div>
+        <div>
+          <h4>Légal</h4>
+          <a href="#mentions">Mentions légales</a>
+          <a href="#confidentialite">Politique de confidentialité</a>
+          <a href="#cookies">Cookies</a>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <a href="mailto:contact@caramail.com">contact@caramail.com</a>
+          <a href="#reseaux">Réseaux sociaux</a>
+        </div>
+      </div>
+      <div class="container copy">© 2025 CaraMail — Page d’atterrissage minimaliste (maquette). Tous droits réservés.</div>
+    </footer>
+  </div>
+</body>
+</html>

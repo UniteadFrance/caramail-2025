@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>CaraMail — Entrer dans le chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Entrer dans un salon CaraMail avec votre pseudo.">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#0f1320}
+    a{color:#0b48c9;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{min-height:100vh;display:flex;flex-direction:column}
+    header{padding:18px}
+    .container{max-width:980px;margin:0 auto;padding:0 16px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 35%, #fff 0 28%, #c21d1d 29% 31%, #0b48c9 32% 100%);box-shadow:0 1px 0 rgba(0,0,0,.2) inset,0 2px 8px rgba(0,0,0,.08)}
+    .logotxt{font-weight:900;letter-spacing:.5px}
+    .hero{flex:1;display:grid;place-items:center;padding:32px 16px}
+    .panel{
+      width:min(640px, 92vw);
+      background:#fff;
+      border:1px solid #e5e9f2;
+      border-radius:22px;
+      box-shadow:0 20px 60px rgba(11,17,40,.08);
+      padding:26px 22px 22px;
+    }
+    .title{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+    .title .circle{
+      width:48px;height:48px;border-radius:50%;
+      background:radial-gradient(circle at 55% 45%, #fff 0 64%, #f9f2e5 65% 100%);
+      border:6px solid #d21b1b;box-shadow:0 2px 0 #b10e0e inset,0 10px 30px rgba(0,0,0,.05);
+    }
+    h1{font-size:20px;margin:0}
+    .lead{margin:4px 0 12px 60px;color:#4c5878;font-size:13px}
+    form.form{display:grid;gap:12px;margin-top:8px}
+    label{font-weight:700;font-size:14px}
+    .input,.select{padding:12px;border:1px solid #cfd7e6;border-radius:12px;font-size:16px;width:100%;outline:none}
+    .btn{padding:12px 14px;border:none;border-radius:12px;background:#0b48c9;color:#fff;font-weight:800;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .note{margin-top:6px;color:#556086;font-size:12px}
+    .quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+    .chip{padding:6px 10px;border:1px solid #dfe6f2;border-radius:999px;background:#f7f9ff;font-size:13px;cursor:pointer}
+    footer{margin-top:24px;border-top:1px solid #e6eaf2;background:#fafcff}
+    .foot{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:18px;padding:18px 16px}
+    .foot h4{margin:0 0 6px 0;font-size:14px}
+    .foot a{display:block;margin:4px 0;color:#30406a;font-size:13px}
+    .copy{padding:12px 16px;color:#6b789c;font-size:12px;border-top:1px dotted #e0e6f2}
+    @media (max-width:720px){
+      .row{grid-template-columns:1fr}
+      .lead{margin-left:0}
+      .foot{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:520px){
+      .foot{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="container brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="logotxt">CaraMail</div>
+      </div>
+    </header>
+
+    <main class="hero">
+      <section class="panel" aria-label="Entrer dans un salon">
+        <div class="title">
+          <div class="circle" aria-hidden="true"></div>
+          <h1>Entrer dans le chat</h1>
+        </div>
+        <p class="lead">Choisissez un pseudo et un salon. Vous serez redirigé vers le chat en temps réel.</p>
+
+        <form class="form" onsubmit="return enterChat(event)">
+          <div class="row">
+            <div>
+              <label for="nick">Pseudo</label>
+              <input id="nick" class="input" placeholder="Ex: caranormandie" maxlength="32" required>
+            </div>
+            <div>
+              <label for="room">Salon</label>
+              <select id="room" class="select" required>
+                <option value="#cafe-des-modes">#cafe-des-modes</option>
+                <option value="#nostalgie-2002">#nostalgie-2002</option>
+                <option value="#entraide-web">#entraide-web</option>
+                <option value="#musique">#musique</option>
+                <option value="#caen">#caen</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn" type="submit">Entrer dans le salon</button>
+          <div class="note">Astuce : cliquez sur un **chip** ci‑dessous pour préremplir.</div>
+          <div class="quick">
+            <span class="chip" data-nick="moi" data-room="#cafe-des-modes">moi @ #cafe-des-modes</span>
+            <span class="chip" data-nick="moi" data-room="#nostalgie-2002">moi @ #nostalgie-2002</span>
+            <span class="chip" data-nick="moi" data-room="#entraide-web">moi @ #entraide-web</span>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container foot">
+        <div>
+          <h4>CaraMail</h4>
+          <a href="#">À propos</a>
+          <a href="#">Presse</a>
+          <a href="#">Status service</a>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <a href="#">Centre d’aide</a>
+          <a href="#">Sécurité</a>
+          <a href="#">Signalements</a>
+        </div>
+        <div>
+          <h4>Légal</h4>
+          <a href="#">Mentions légales</a>
+          <a href="#">Politique de confidentialité</a>
+          <a href="#">Cookies</a>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <a href="mailto:contact@caramail.com">contact@caramail.com</a>
+          <a href="#">Réseaux sociaux</a>
+        </div>
+      </div>
+      <div class="container copy">© 2025 CaraMail — Entrée vers le chat (démo). Tous droits réservés.</div>
+    </footer>
+  </div>
+
+  <script>
+    // Préremplir si on arrive avec ?nick=&room=
+    (function(){
+      const p = new URLSearchParams(location.search);
+      if(p.get('nick')) document.getElementById('nick').value = p.get('nick');
+      if(p.get('room')) document.getElementById('room').value = p.get('room');
+    })();
+
+    // Chips rapides
+    document.querySelectorAll('.chip').forEach(ch => {
+      ch.addEventListener('click', () => {
+        document.getElementById('nick').value = ch.dataset.nick;
+        document.getElementById('room').value = ch.dataset.room;
+      });
+    });
+
+    function enterChat(e){
+      e.preventDefault();
+      const nick = (document.getElementById('nick').value || '').trim();
+      const room = document.getElementById('room').value;
+      if(!nick){ alert('Choisissez un pseudo'); return false; }
+      // Redirection vers la page salon live avec paramètres
+      const url = 'caramail_salon_live.html?room=' + encodeURIComponent(room) + '&nick=' + encodeURIComponent(nick);
+      location.href = url;
+      return false;
+    }
+  </script>
+</body>
+</html>

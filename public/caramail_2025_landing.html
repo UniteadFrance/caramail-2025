@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>CaraMail — Email, Chat & Communautés (2025)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CaraMail revient en 2025 : un webmail rapide, un chat temps réel et des communautés modérées. Crée ton adresse @caramail.com.">
+  <meta property="og:title" content="CaraMail — le retour (2025)">
+  <meta property="og:description" content="Email, Chat & Communautés. Rejoins la nouvelle ère CaraMail.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0d1b2a">
+  <style>
+    :root{
+      --bg:#0b1220;           /* fond nuit profond */
+      --bg2:#0e1530;
+      --card:#0f1736;
+      --muted:#9fb3c8;
+      --text:#eaf2ff;
+      --brand:#3aa2ff;
+      --accent:#ffd166;
+      --ok:#41b459;
+      --danger:#ff5d6c;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(120deg,var(--bg),var(--bg2));color:var(--text);font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif}
+    a{color:var(--brand);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+    header{position:sticky;top:0;background:rgba(11,18,32,.7);backdrop-filter: blur(10px);border-bottom:1px solid rgba(255,255,255,.06);z-index:10}
+    .nav{display:flex;align-items:center;gap:18px;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:.5px}
+    .logo{width:28px;height:28px;border-radius:6px;background:conic-gradient(from 200deg at 50% 50%,#fff, var(--brand), #7b61ff, #27e1bd, #fff);box-shadow:0 0 0 3px rgba(255,255,255,.08) inset}
+    .beta{border:2px dashed rgba(255,255,255,.25);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--accent);font-weight:800}
+    .menu{display:flex;gap:18px;align-items:center}
+    .menu a{color:#d9e6ff;font-weight:600}
+    .cta{display:flex;gap:10px;align-items:center}
+    .btn{border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer}
+    .btn.outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:#eaf2ff}
+    .btn.primary{background:linear-gradient(180deg, #5ab4ff, #408bff);color:#041426;box-shadow:var(--shadow)}
+    /* HERO */
+    .hero{padding:72px 0 36px;display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center}
+    .h-title{font-size: clamp(30px, 6vw, 50px);line-height:1.05;margin:0}
+    .h-sub{font-size: clamp(16px, 2.4vw, 20px);color:var(--muted);margin:14px 0 26px}
+    .pill{display:inline-flex;gap:8px;align-items:center;border-radius:999px;padding:8px 12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);font-weight:700;color:#d6e6ff}
+    .inputline{display:flex;gap:10px;flex-wrap:wrap}
+    .input{flex:1 1 260px;padding:14px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font-size:16px;outline:none}
+    .domain{min-width:180px}
+    .note{font-size:12px;color:var(--muted);margin-top:8px}
+    .mock{background:radial-gradient(1200px 300px at 0% -20%, rgba(58,162,255,.25), transparent 60%);}
+    .mock card{display:block}
+    .mockbox{background:linear-gradient(160deg, #121b3c, #0d1533);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+    .tabs-old{display:flex;gap:8px;align-items:flex-end;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:6px;margin-bottom:10px}
+    .tab-old{background:#dadde7;color:#213050;font-weight:800;border-radius:6px 6px 0 0;border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #7d89a8;border-bottom:1px solid #7d89a8;padding:6px 10px;font-size:13px}
+    .tab-old.active{background:#fff;color:#0a48c9;text-decoration:underline}
+    .window{background:#0b1226;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+    .window .title{color:#9fb3c8;font-weight:700;margin-bottom:6px}
+    .chatline{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;font-size:13px;margin:6px 0}
+    .p-blue{color:#6fb3ff;font-weight:700}
+    .p-red{color:#ff7b7b;font-weight:700}
+    /* FEATURES */
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:64px 0}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);border-radius:var(--radius);padding:20px;box-shadow: var(--shadow)}
+    .card h3{margin:0 0 8px}
+    .card p{margin:0;color:var(--muted)}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .chip{font-size:12px;border:1px solid rgba(255,255,255,.15);padding:6px 10px;border-radius:999px;color:#dbe8ff}
+    /* SOCIAL PROOF / SECURITY */
+    .strip{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:10px 0 70px}
+    .trust{background:linear-gradient(180deg, rgba(65,180,89,.12), rgba(65,180,89,.04));border:1px dashed rgba(65,180,89,.35);border-radius:var(--radius);padding:18px}
+    .privacy{background:linear-gradient(180deg, rgba(58,162,255,.12), rgba(58,162,255,.04));border:1px dashed rgba(58,162,255,.35);border-radius:var(--radius);padding:18px}
+    .trust h4,.privacy h4{margin:0 0 6px}
+    /* CTA SECTION */
+    .cta-wide{display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between;padding:18px 20px;border-radius:var(--radius);background:linear-gradient(90deg, rgba(90,180,255,.16), rgba(39,225,189,.08));border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow)}
+    /* FOOTER */
+    footer{border-top:1px solid rgba(255,255,255,.08);padding:26px 0;color:#c9d7e6}
+    .footcols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:18px}
+    .copyright{margin-top:20px;color:#9fb3c8;font-size:13px}
+    /* RESPONSIVE */
+    @media (max-width:1000px){
+      .hero{grid-template-columns:1fr}
+      .mock{order:-1}
+    }
+    @media (max-width:860px){
+      .features{grid-template-columns:1fr 1fr}
+      .strip{grid-template-columns:1fr}
+      .footcols{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:560px){
+      .features{grid-template-columns:1fr}
+      .footcols{grid-template-columns:1fr}
+      .menu{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>CaraMail</div>
+        <div class="beta">RE:LAUNCH 2025</div>
+      </div>
+      <nav class="menu" aria-label="Navigation principale">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#communautes">Communautés</a>
+        <a href="#securite">Sécurité</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="cta">
+        <a class="btn outline" href="#signin">Se connecter</a>
+        <a class="btn primary" href="#create">Créer une adresse</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="container hero">
+      <div>
+        <span class="pill">Le web d’hier. La vitesse de 2025. 💌</span>
+        <h1 class="h-title">Email, Chat & Communautés<br>re-imaginés.</h1>
+        <p class="h-sub">Retrouve l’esprit CaraMail — sobriété, modération humaine, et une boîte mail rapide. 100% RGPD, infra UE, export simple, zéro traque publicitaire.</p>
+        <form id="create" class="inputline" onsubmit="event.preventDefault();alert('Bienvenue ! (démo)')">
+          <input class="input" aria-label="Choisir son identifiant" placeholder="ton.pseudo" required>
+          <select class="input domain" aria-label="Choisir son domaine">
+            <option>@caramail.com</option>
+            <option>@caramail.fr</option>
+            <option>@cara.email</option>
+          </select>
+          <button class="btn primary" type="submit">Créer mon adresse</button>
+        </form>
+        <div class="note">Déjà membre ? <a id="signin" href="#">Se connecter</a> • 5Go gratuits, alias illimités, anti-spam avancé.</div>
+      </div>
+
+      <div class="mock">
+        <div class="mockbox">
+          <div class="tabs-old">
+            <div class="tab-old">Salons</div>
+            <div class="tab-old">Connecté(e)s</div>
+            <div class="tab-old">Options</div>
+            <div class="tab-old">Ami(e)s</div>
+            <div class="tab-old active">Aide CaraMail (café des modés)</div>
+          </div>
+          <div class="window" role="region" aria-label="Aperçu chat">
+            <div class="title">#Café-des-modés — aperçu</div>
+            <div class="chatline"><span class="p-blue">caranormandie&gt;</span> bienvenue sur le nouveau tchat ✨</div>
+            <div class="chatline"><span class="p-red">#Hades&gt;</span> latence &lt; 50ms, chiffrement activé</div>
+            <div class="chatline"><span class="p-blue">mike-caen&gt;</span> rdv salon #nostalgie ce soir 22h ;)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="container">
+      <div class="features">
+        <article class="card">
+          <h3>Webmail ultra‑rapide</h3>
+          <p>Boîte de réception épurée, filtres intelligents, signatures et alias illimités. IMAP/POP/SMTP standards.</p>
+          <div class="chips">
+            <span class="chip">Agenda</span><span class="chip">Règles</span><span class="chip">Snooze</span><span class="chip">Pièces jointes 100Mo</span>
+          </div>
+        </article>
+        <article class="card">
+          <h3>Chat temps réel</h3>
+          <p>Salons publics/privés, messages privés, rôles modérateurs. Historique facultatif, mentions et réactions.</p>
+          <div class="chips">
+            <span class="chip">Chiffrement TLS</span><span class="chip">App mobile</span><span class="chip">Modération</span>
+          </div>
+        </article>
+        <article class="card">
+          <h3>Communautés</h3>
+          <p>Forums typés 2000’s mais pensés pour 2025, profils sobres, karma, et règles nettes contre le spam.</p>
+          <div class="chips">
+            <span class="chip">Thèmes</span><span class="chip">Badges</span><span class="chip">Événements</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="securite" class="container strip">
+      <div class="trust">
+        <h4>Confiance & RGPD</h4>
+        <p>Serveurs en Union Européenne, export de données en 1 clic, publicité non ciblée, cookies minimalistes. Conformité RGPD & ePrivacy.</p>
+      </div>
+      <div class="privacy">
+        <h4>Anti‑spam & sécurité</h4>
+        <p>SPF, DKIM, DMARC, quarantaines, authentification forte, récupération sans numéro de téléphone (clé de secours).</p>
+      </div>
+    </section>
+
+    <section class="container cta-wide">
+      <div>
+        <strong>Rejoins la nouvelle ère CaraMail.</strong><br>
+        Pas besoin d’invitation : choisis ton pseudo et c’est parti.
+      </div>
+      <a class="btn primary" href="#create">Créer mon adresse</a>
+    </section>
+  </main>
+
+  <footer class="container">
+    <div class="footcols">
+      <div>
+        <h4>CaraMail</h4>
+        <p>Le webmail & tchat iconiques, remis au goût du jour. Sobre, rapide, utile.</p>
+      </div>
+      <div>
+        <h4>Produit</h4>
+        <p><a href="#features">Fonctionnalités</a><br><a href="#securite">Sécurité</a><br><a href="#faq">FAQ</a></p>
+      </div>
+      <div>
+        <h4>Légal</h4>
+        <p><a href="#">Mentions légales</a><br><a href="#">Confidentialité</a><br><a href="#">Cookies</a></p>
+      </div>
+      <div>
+        <h4>Réseaux</h4>
+        <p><a href="#">X / Twitter</a><br><a href="#">Mastodon</a><br><a href="#">LinkedIn</a></p>
+      </div>
+    </div>
+    <div class="copyright">© 2025 CaraMail — Maquettes et textes à titre de démonstration.</div>
+  </footer>
+
+  <script>
+    // Très léger JS: focus sur l'input quand on clique "Créer une adresse" dans le header
+    document.querySelectorAll('a[href="#create"]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        const input = document.querySelector('#create .input'); if(input){ input.focus(); }
+      });
+    });
+  </script>
+</body>
+</html>

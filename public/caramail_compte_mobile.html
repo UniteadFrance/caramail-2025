@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>CaraMail — Mon compte (mobile‑friendly)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e6e6e6;color:#111}
+    a{color:#0047cc;text-decoration:underline}
+    .wrap{min-height:100vh;display:flex;flex-direction:column}
+    /* Tabs: wrap on small screens */
+    .topbar{background:#cfcfcf;border-bottom:1px solid #9c9c9c;display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;padding:6px 10px}
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;position:relative}
+    .tabs:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:#b5b5b5}
+    .tab{background:#e9e9e9;padding:6px 10px;border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #8f8f8f;border-bottom:1px solid #8f8f8f;border-radius:4px 4px 0 0;font-weight:700;white-space:nowrap}
+    .tab.active{background:#fff;border-bottom-color:#fff}
+    .tab.active .tab-label{color:#0047cc;text-decoration:underline}
+    .status{margin-left:auto;padding-bottom:6px;font-size:12px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+    .container{max-width:980px;margin:0 auto;padding:16px}
+    .card{background:#fff;border:1px solid #dfe3ec;border-radius:10px;padding:16px;box-shadow:0 12px 36px rgba(0,0,0,.06);margin-bottom:12px}
+    h1{font-size:20px;margin:10px 0 12px}
+    h2{font-size:16px;margin:12px 0 8px}
+    /* Responsive grid -> 1 column on narrow screens */
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .row{display:grid;grid-template-columns:minmax(120px, 180px) 1fr;gap:10px;align-items:center;margin:8px 0}
+    label{font-weight:700}
+    .input,.select{width:100%;padding:10px;border:1px solid #cfd7e6;border-radius:8px;font-size:15px;min-width:0}
+    .hint{font-size:12px;color:#5a6a8e;margin-top:6px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .btn{padding:10px 14px;border:none;border-radius:8px;background:#0066cc;color:#fff;font-weight:800;cursor:pointer}
+    .btn.ghost{background:#efefef;color:#111;border:1px solid #c7ccd6}
+    .dashed{border:1px dashed #cfd7e6;border-radius:10px;padding:10px}
+    .section{margin-top:10px}
+    footer{margin-top:auto;border-top:1px solid #dcdcdc;background:#f3f3f3}
+    .foot{max-width:980px;margin:0 auto;padding:12px;color:#555;font-size:12px}
+    /* Long text never overflows */
+    .status strong, #email, #pseudo {overflow-wrap:anywhere}
+    /* Breakpoints */
+    @media(max-width:900px){
+      .grid{grid-template-columns:1fr}
+      .status{flex-basis:100%;max-width:100%}
+    }
+    @media(max-width:560px){
+      .tab{padding:6px 8px;font-size:13px}
+      .row{grid-template-columns:1fr;gap:6px}
+      .actions .btn{width:100%}
+      .container{padding:12px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="tabs" aria-label="Onglets">
+        <div class="tab"><span class="tab-label">Salons</span></div>
+        <div class="tab"><span class="tab-label">PV</span></div>
+        <div class="tab"><span class="tab-label">Amis</span></div>
+        <div class="tab active"><span class="tab-label">Mon compte</span></div>
+        <div class="tab"><span class="tab-label">Utilisateurs bloqués</span></div>
+      </div>
+      <div class="status">Connecté en tant que <strong>moi@caramail.com</strong></div>
+    </div>
+
+    <main class="container">
+      <div class="card">
+        <h1>Mon compte</h1>
+        <div class="grid">
+          <section class="section">
+            <h2>Profil</h2>
+            <div class="row">
+              <label for="pseudo">Pseudo</label>
+              <input id="pseudo" class="input" placeholder="ton.pseudo" value="moi">
+            </div>
+            <div class="row">
+              <label for="color">Couleur par défaut</label>
+              <select id="color" class="select">
+                <option value="blue">Bleu</option>
+                <option value="red">Rouge</option>
+                <option value="yellow">Jaune</option>
+                <option value="green">Vert</option>
+              </select>
+            </div>
+            <div class="row">
+              <label for="status">Statut</label>
+              <select id="status" class="select">
+                <option>En ligne</option>
+                <option>Occupé(e)</option>
+                <option>Invisible</option>
+              </select>
+            </div>
+            <div class="actions">
+              <button class="btn" onclick="saveProfile()">Enregistrer le profil</button>
+              <button class="btn ghost" onclick="resetProfile()">Réinitialiser</button>
+            </div>
+            <div id="msg1" class="hint"></div>
+          </section>
+
+          <section class="section">
+            <h2>Identifiants</h2>
+            <div class="row">
+              <label for="email">Adresse email</label>
+              <input id="email" class="input" type="email" placeholder="moi@caramail.com" value="moi@caramail.com">
+            </div>
+            <div class="row">
+              <label for="pwd">Mot de passe</label>
+              <input id="pwd" class="input" type="password" placeholder="••••••••">
+            </div>
+            <div class="row">
+              <label for="auth">Connexion</label>
+              <select id="auth" class="select">
+                <option>Mot de passe</option>
+                <option>Lien magique (email)</option>
+              </select>
+            </div>
+            <div class="actions">
+              <button class="btn" onclick="saveAuth()">Mettre à jour</button>
+              <button class="btn ghost" onclick="sendMagic()">M’envoyer un lien magique</button>
+            </div>
+            <div id="msg2" class="hint"></div>
+          </section>
+        </div>
+      </div>
+
+      <div class="card dashed">
+        <h2>Préférences</h2>
+        <div class="row">
+          <label for="theme">Thème</label>
+          <select id="theme" class="select">
+            <option>Clair</option>
+            <option>Sombre</option>
+            <option>Système</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="lang">Langue</label>
+          <select id="lang" class="select">
+            <option>Français</option>
+            <option>English</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Notifications</label>
+          <div>
+            <label><input type="checkbox" id="notif-msg" checked> Messages</label><br>
+            <label><input type="checkbox" id="notif-pv" checked> PV</label><br>
+            <label><input type="checkbox" id="notif-ami"> Demandes d’ami(e)</label>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="savePrefs()">Enregistrer les préférences</button>
+        </div>
+        <div id="msg3" class="hint"></div>
+      </div>
+
+      <div class="card">
+        <h2>Données & confidentialité</h2>
+        <p class="hint">Télécharger vos données, demander la suppression du compte, ou contacter le DPO.</p>
+        <div class="actions">
+          <button class="btn ghost" onclick="downloadData()">Exporter mes données (.zip)</button>
+          <button class="btn danger" style="background:#ff5d6c" onclick="requestDeletion()">Demander suppression</button>
+        </div>
+        <div id="msg4" class="hint"></div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="foot">
+        © 2025 CaraMail — <a href="#">Mentions légales</a> · <a href="#">Confidentialité</a> · <a href="#">Cookies</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    function flash(el, txt){ el.textContent = txt; setTimeout(()=>el.textContent='', 2000); }
+    function saveProfile(){ flash(document.getElementById('msg1'), 'Profil enregistré (démo)'); }
+    function resetProfile(){ document.getElementById('pseudo').value='moi'; document.getElementById('color').value='blue'; document.getElementById('status').value='En ligne'; }
+    function saveAuth(){ flash(document.getElementById('msg2'), 'Identifiants mis à jour (démo)'); }
+    function sendMagic(){ flash(document.getElementById('msg2'), 'Lien magique envoyé (démo)'); }
+    function savePrefs(){ flash(document.getElementById('msg3'), 'Préférences enregistrées (démo)'); }
+    function downloadData(){ flash(document.getElementById('msg4'), 'Préparation de l’export… (démo)'); }
+    function requestDeletion(){ if(confirm('Confirmer la demande de suppression ? (démo)')) flash(document.getElementById('msg4'), 'Demande envoyée (démo)'); }
+  </script>
+  <script src="/caramail_nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>CaraMail — PV (popup)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:#e6e6e6;color:#111;overflow:hidden}
+    .wrap{height:100vh;display:flex;flex-direction:column}
+    /* barre titre fenêtre style 2002 */
+    .titlebar{background:#cfcfcf;border-bottom:1px solid #9c9c9c;display:flex;align-items:center;gap:8px;padding:6px 8px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#ff5d6c;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+    .dot.min{background:#ffd166}
+    .dot.max{background:#41b459}
+    .title{font-weight:800}
+    /* panneau principal compact */
+    .pv{flex:1;background:#f7f7f7;border-top:1px solid #fff;display:flex;flex-direction:column;overflow:hidden}
+    .header{display:flex;align-items:center;justify-content:space-between;gap:8px;background:linear-gradient(#efefef,#e6e6e6);border-bottom:1px solid #d0d0d0;padding:8px 10px}
+    .who{font-weight:800;color:#0b4a7a}
+    .btn{padding:4px 8px;border:1px solid #bdbdbd;border-radius:6px;background:#efefef;font-weight:700;cursor:pointer}
+    .dialogue{flex:1;padding:8px;background:#fff;overflow:hidden;min-height:0}
+    .line{margin:6px 0;display:flex;gap:6px;font-size:14px}
+    .left .nick{color:#0044cc;font-weight:700}
+    .right{justify-content:flex-end}
+    .right .nick{color:#cc0000;font-weight:700}
+    .bubble{max-width:80%;padding:6px 8px;border:1px solid #e6e6e6;border-radius:10px;background:#fafafa}
+    .right .bubble{background:#eef5ff;border-color:#cfe1ff}
+    .input{display:flex;gap:6px;align-items:center;border-top:1px solid #dcdcdc;background:linear-gradient(#f6f6f6,#ececec);padding:6px}
+    .txt{flex:1;padding:8px;border:1px solid #cfcfcf;border-radius:8px;font-size:14px}
+    .send{padding:8px 10px;background:#0066cc;color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer}
+    .footer{padding:6px 8px;border-top:1px solid #ddd;background:#f3f3f3;font-size:11px;color:#555}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="titlebar">
+      <div class="dot"></div><div class="dot min"></div><div class="dot max"></div>
+      <div class="title" id="title">Message privé</div>
+    </div>
+
+    <section class="pv">
+      <div class="header">
+        <div class="who" id="who">PV avec <span id="toName">contact</span></div>
+        <div>
+          <button class="btn" onclick="window.close()">Fermer</button>
+        </div>
+      </div>
+
+      <div id="dialogue" class="dialogue" aria-live="polite">
+        <div class="line left"><span class="nick" id="nickLeft">contact&gt;</span><div class="bubble">Salut 👋</div></div>
+        <div class="line right"><div class="bubble">Hey !</div><span class="nick" id="nickRight">moi&gt;</span></div>
+      </div>
+
+      <div class="input">
+        <input id="text" class="txt" placeholder="Votre message…">
+        <button id="sendBtn" class="send">Envoyer</button>
+      </div>
+
+      <div class="footer">CaraMail — PV (popup) · <a href="#" style="color:#0047cc;text-decoration:underline">Mentions</a></div>
+    </section>
+  </div>
+
+  <script>
+    // Récupère ?me=&to= depuis l'URL
+    const params = new URLSearchParams(location.search);
+    const me = params.get('me') || 'moi';
+    const to = params.get('to') || 'contact';
+    document.getElementById('title').textContent = `PV — ${me} ↔ ${to}`;
+    document.getElementById('toName').textContent = to;
+    document.getElementById('nickLeft').textContent = to + '>';
+    document.getElementById('nickRight').textContent = me + '>';
+
+    // Petite simulation locale
+    const dlg = document.getElementById('dialogue');
+    const text = document.getElementById('text');
+    const send = document.getElementById('sendBtn');
+
+    function add(side, pseudo, content){
+      const line = document.createElement('div');
+      line.className = 'line ' + side;
+      if(side==='left'){
+        line.innerHTML = `<span class="nick">${pseudo}&gt;</span><div class="bubble"></div>`;
+        line.querySelector('.bubble').textContent = content;
+      }else{
+        line.innerHTML = `<div class="bubble"></div><span class="nick">${pseudo}&gt;</span>`;
+        line.querySelector('.bubble').textContent = content;
+      }
+      dlg.appendChild(line);
+    }
+
+    send.addEventListener('click', ()=>{
+      const v = (text.value||'').trim();
+      if(!v) return;
+      add('right', me, v);
+      text.value='';
+      setTimeout(()=>add('left', to, 'ok'), 650);
+    });
+    text.addEventListener('keydown', e=>{
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send.click(); }
+    });
+  </script>
+  <script src="/caramail_nav.js"></script>
+</body>
+</html>
