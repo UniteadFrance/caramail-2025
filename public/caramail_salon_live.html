@@ -6,9 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     *{box-sizing:border-box}
-    html,body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e6e6e6;color:#111}
+    html,body{margin:0;height:100%;overflow:hidden;font-family:Arial,Helvetica,sans-serif;background:#e6e6e6;color:#111}
     a{color:#0047cc;text-decoration:underline}
-    .wrap{min-height:100vh;display:flex;flex-direction:column}
+    .wrap{min-height:100%;display:flex;flex-direction:column}
+    /* Top tabs */
     .topbar{background:#cfcfcf;border-bottom:1px solid #9c9c9c;display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;padding:6px 10px}
     .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;position:relative}
     .tabs:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:#b5b5b5}
@@ -16,14 +17,15 @@
     .tab.active{background:#fff;border-bottom-color:#fff}
     .tab.active .tab-label{color:#0047cc;text-decoration:underline}
     .status{margin-left:auto;padding-bottom:6px;font-size:12px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
-    .main{flex:1;display:flex;gap:10px;padding:12px}
-    .rightcol{width:240px;display:flex;flex-direction:column;gap:10px}
+    /* Layout */
+    .main{flex:1;display:flex;gap:10px;padding:12px;min-height:0}
+    .rightcol{width:240px;display:flex;flex-direction:column;gap:10px;min-width:220px}
     .box{background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;padding:10px}
     .members .member{padding:4px 6px;border-bottom:1px dashed #ededed}
-    .chat-panel{flex:1;background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;display:flex;flex-direction:column;min-width:0}
+    .chat-panel{flex:1;background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;display:flex;flex-direction:column;min-height:0}
     .header-chat{background:linear-gradient(#efefef,#e6e6e6);padding:10px;border-bottom:1px solid #d0d0d0;display:flex;gap:12px;align-items:center;justify-content:space-between}
     .room{font-weight:bold;color:#0b4a7a}
-    .dialogue{flex:1;padding:10px;background:#fff;overflow:auto}
+    .dialogue{flex:1;padding:10px;background:#fff;overflow-y:auto;min-height:0}
     .message{margin:6px 0;line-height:1.45;font-size:14px}
     .sys{color:#8a8a8a;font-style:italic}
     .msg-pseudo{font-weight:bold;margin-right:6px}
@@ -32,41 +34,16 @@
     .nick{width:140px;padding:8px;border:1px solid #cfcfcf;border-radius:6px}
     .txt{flex:1;padding:8px;border:1px solid #cfcfcf;border-radius:6px}
     .send{padding:8px 12px;background:#0066cc;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-    @media(max-width:820px){.main{flex-direction:column}.rightcol{width:100%}}
-  </style>
-
-<!-- Mobile height + scroll fix -->
-<style>
-  /* 1) Use dynamic viewport units on mobile */
-  .wrap{ height:100vh; } /* fallback */
-  @supports (height: 100dvh){
-    .wrap{ height:100dvh; }
-  }
-
-  /* 2) Flex layout so only chat area scrolls */
-  .wrap{ display:flex; flex-direction:column; }
-  .main{ flex:1; min-height:0; }
-  .chat-panel{ flex:1; display:flex; flex-direction:column; min-height:0; }
-  .dialogue{ flex:1; overflow-y:auto; min-height:0; }
-
-  /* 3) Stop body from scrolling behind */
-  html,body{ height:100%; overflow:hidden; }
-</style>
-<script>
-  // 4) Extra safety for iOS Safari: set a CSS var based on innerHeight
-  (function(){
-    function setVH(){
-      document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+    /* Mobile tweaks */
+    .mobile-color{display:none}
+    @media(max-width:820px){
+      .rightcol{display:none}                 /* cache la colonne droite en mobile */
+      .mobile-color{display:inline-block}     /* montre le sélecteur couleur compact */
+      .nick{width:110px}
+      .input-area{gap:6px}
+      .status{max-width:40%}
     }
-    setVH();
-    window.addEventListener('resize', setVH);
-  })();
-</script>
-<style>
-  /* Use the JS var as a last-resort fallback if needed */
-  .wrap{ height: calc(var(--vh, 1vh) * 100); }
-</style>
-
+  </style>
 </head>
 <body>
   <div class="wrap">
@@ -78,7 +55,7 @@
         <div class="tab"><span class="tab-label">Ami(e)s</span></div>
         <div class="tab"><span class="tab-label">Mon compte</span></div>
       </div>
-      <div class="status">Connecté en tant que <strong id="meLabel">invitéx</strong></div>
+      <div class="status">Connecté en tant que <strong id="meLabel">invitéxy</strong></div>
     </div>
 
     <main class="main">
@@ -87,7 +64,7 @@
           <h4>Membres (démo)</h4>
           <div id="roster" class="members"></div>
         </div>
-        <div class="box">
+        <div class="box desktop-color">
           <h4>Options rapides</h4>
           <label>Couleur pseudo
             <select id="color">
@@ -105,9 +82,18 @@
           <div class="room" id="roomTitle">#cafe-des-modes</div>
           <div class="topic">Bienvenue — temps réel</div>
         </div>
+
         <div id="dialogue" class="dialogue" aria-live="polite"></div>
+
         <form id="form" class="input-area">
-          <input id="nick" class="nick" placeholder="Pseudo" value="invitéx" required>
+          <input id="nick" class="nick" placeholder="Pseudo" value="invitéxy" required>
+          <!-- Sélecteur couleur compact visible en mobile -->
+          <select id="colorMobile" class="mobile-color" aria-label="Couleur du pseudo (mobile)">
+            <option value="blue">Bleu</option>
+            <option value="red">Rouge</option>
+            <option value="yellow">Jaune</option>
+            <option value="green">Vert</option>
+          </select>
           <input id="text" class="txt" placeholder="Écris ton message..." autocomplete="off">
           <button class="send" type="submit">Envoyer</button>
         </form>
@@ -117,91 +103,96 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // --- Récupération robuste de nick/room (query string ET hash) ---
-    function getInitialParams(){
-      const searchParams = new URLSearchParams(location.search);
-      let nick = searchParams.get('nick');
-      let room = searchParams.get('room');
+    // --- Lire les paramètres ?nick= & ?room= depuis l'URL ---
+    const params = new URLSearchParams(location.search);
+    const initialNick = (params.get('nick') || 'invitéxy').slice(0, 32);
+    const initialRoom = params.get('room') || '#cafe-des-modes';
 
-      // Si le # d'un room a "coupé" l'URL, la suite est dans location.hash
-      const hash = (location.hash || '').replace(/^#/, '');
-      if(hash){
-        // Cas 1: hash contient une query "nick=...&room=..." -> on la lit
-        const hp = new URLSearchParams(hash);
-        nick = nick || hp.get('nick');
-        room = room || hp.get('room');
-
-        // Cas 2: hash ressemble à "nostalgie-2002&nick=Steph" -> on récupère la 1ère partie comme room
-        if(!room){
-          const firstPart = hash.split('&')[0];
-          if(firstPart) room = '#' + decodeURIComponent(firstPart.replace(/^%23/, ''));
-        }
-      }
-      // Valeurs par défaut
-      return {
-        nick: (nick || 'invitéx').slice(0, 32),
-        room: room || '#cafe-des-modes'
-      };
-    }
-
-    const init = getInitialParams();
-
-    // --- Éléments ---
+    // --- Récup des éléments ---
     const dlg = document.getElementById('dialogue');
     const form = document.getElementById('form');
     const text = document.getElementById('text');
-    const nickInput = document.getElementById('nick');
-    const colorSel = document.getElementById('color');
+    const nick = document.getElementById('nick');
+    const colorSel = document.getElementById('color');            // desktop (si présent)
+    const colorMobile = document.getElementById('colorMobile');   // mobile compact
     const meLabel = document.getElementById('meLabel');
     const roster = document.getElementById('roster');
     const roomTitle = document.getElementById('roomTitle');
 
     // --- Init UI ---
-    nickInput.value = init.nick;
-    meLabel.textContent = init.nick;
-    roomTitle.textContent = init.room;
+    nick.value = initialNick;
+    meLabel.textContent = initialNick;
+    roomTitle.textContent = initialRoom;
 
+    // Sync couleur entre desktop et mobile
+    function syncColor(from){
+      const val = from.value;
+      if(colorSel) colorSel.value = val;
+      if(colorMobile) colorMobile.value = val;
+    }
+    if(colorSel) colorSel.addEventListener('change', e => syncColor(e.target));
+    if(colorMobile) colorMobile.addEventListener('change', e => syncColor(e.target));
+    // Valeur initiale
+    if(colorSel && colorMobile){ colorMobile.value = colorSel.value; }
+
+    // --- Socket.IO ---
     const socket = io();
     let lastSent = null;
 
-    function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-    function line(type,pseudo,content,color){
-      const div=document.createElement('div');
-      div.className='message '+(type==='sys'?'sys':'');
-      if(type==='sys'){div.textContent='— '+content;}
-      else{div.innerHTML='<span class="msg-pseudo pseudo-'+(color||'blue')+'">'+escapeHtml(pseudo)+'&gt;</span> '+escapeHtml(content);}
-      dlg.appendChild(div); dlg.scrollTop=dlg.scrollHeight;
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     }
+    function line(type, pseudo, content, color){
+      const div = document.createElement('div');
+      div.className = 'message ' + (type==='sys'?'sys':'');
+      if(type==='sys'){
+        div.textContent = '— ' + content;
+      }else{
+        div.innerHTML = '<span class="msg-pseudo pseudo-' + (color||'blue') + '">' + escapeHtml(pseudo) + '&gt;</span> ' + escapeHtml(content);
+      }
+      dlg.appendChild(div);
+      dlg.scrollTop = dlg.scrollHeight;
+    }
+
+    function updateMe(){
+      meLabel.textContent = nick.value || 'invitéxy';
+      renderRoster();
+    }
+    nick.addEventListener('input', updateMe);
 
     function renderRoster(){
-      const pseudo = nickInput.value || 'invité';
-      roster.innerHTML = ['caranormandie','mike-caen','guest_42', pseudo].map(u=>'<div class="member">'+escapeHtml(u)+'</div>').join('');
+      const pseudo = nick.value || 'invitéxy';
+      if(!roster) return;
+      roster.innerHTML = ['caranormandie','mike-caen','guest_42', pseudo]
+        .map(u => '<div class="member">'+escapeHtml(u)+'</div>').join('');
     }
     renderRoster();
-    nickInput.addEventListener('input', ()=>{ meLabel.textContent = nickInput.value||'invité'; renderRoster(); });
 
-    form.addEventListener('submit',(e)=>{
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const txt = text.value.trim(); if(!txt) return;
-      const pseudo = nickInput.value || 'invité';
+      const txt = text.value.trim();
+      if(!txt) return;
+      const pseudo = nick.value || 'invitéxy';
+      const color = (colorSel && colorSel.value) || (colorMobile && colorMobile.value) || 'blue';
       const payload = pseudo + ': ' + txt;
       lastSent = payload;
-      line('msg', pseudo, txt, colorSel.value);
+      line('msg', pseudo, txt, color);
       socket.emit('chat message', payload);
       text.value='';
     });
 
-    socket.on('chat message',(msg)=>{
-      if(lastSent && msg===lastSent){ lastSent=null; return; }
-      const m = String(msg).split(':',2);
+    socket.on('chat message', (msg) => {
+      if(lastSent && msg === lastSent){ lastSent = null; return; }
+      const m = String(msg).split(':', 2);
       const pseudo = m[0] || 'autre';
       const content = msg.slice((pseudo+':').length).trim();
       line('msg', pseudo, content, 'red');
     });
 
-    line('sys','', 'Connecté(e) en tant que '+init.nick+' • Salon: '+init.room+'. Ouvre cette page dans un 2ᵉ onglet pour tester.');
+    line('sys', '', 'Connecté(e) en tant que ' + initialNick + ' • Salon: ' + initialRoom + '.');
   </script>
 
+  <!-- Soudure des onglets si présent -->
   <script src="/caramail_nav.js"></script>
 </body>
 </html>
