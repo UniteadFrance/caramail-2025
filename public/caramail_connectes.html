@@ -86,7 +86,63 @@
   refreshPresence();
   setInterval(refreshPresence, 5000);
 </script>
+<script>
+(() => {
+  const roomsEl = document.getElementById('rooms');
+  const badgeEl = document.getElementById('badge');
+  const subEl   = document.getElementById('sub');
 
+  function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+  function css(c){c=(c||'').toLowerCase(); return ['blue','red','green','yellow'].includes(c)?c:'blue';}
+
+  async function refresh() {
+    try {
+      const r = await fetch('/presence', { cache: 'no-store' });
+      const data = await r.json();
+      const list = Array.isArray(data.list) ? data.list : [];
+
+      if (badgeEl) badgeEl.textContent = String(list.length);
+      if (subEl)   subEl.textContent   = list.length
+        ? `${list.length} connecté(e)s actuellement`
+        : 'Aucun(e) connecté(e) pour le moment';
+
+      // Regrouper par salon
+      const by = {};
+      for (const u of list) {
+        const room = (u.room || '#general');
+        (by[room] ||= []).push(u);
+      }
+
+      let html = '';
+      const rooms = Object.keys(by).sort();
+      if (!rooms.length) {
+        html = '<div class="empty">Personne en ligne pour le moment.</div>';
+      } else {
+        for (const room of rooms) {
+          const users = by[room].sort((a,b)=> (a.nick||'').localeCompare(b.nick||''));
+          const pills = users.map(u =>
+            `<a class="user ${css(u.color)}" href="/caramail_dm.html?peer=${encodeURIComponent(u.nick||'invité')}">${esc(u.nick||'invité')}</a>`
+          ).join('');
+          html += `
+            <section class="room">
+              <div class="room-hd">
+                <span class="room-name">${esc(room)}</span>
+                <span class="room-count">(${users.length})</span>
+              </div>
+              <div class="room-bd"><div class="users">${pills || '<span class="muted">—</span>'}</div></div>
+            </section>`;
+        }
+      }
+      if (roomsEl) roomsEl.innerHTML = html;
+    } catch (_) {
+      if (subEl) subEl.textContent = 'Erreur de chargement…';
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 5000);
+})();
+</script>
 
 </body>
 </html>
