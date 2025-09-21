@@ -138,7 +138,7 @@
         <div class="tab"><span class="tab-label">Ami(e)s</span></div>
         <div class="tab"><span class="tab-label">Mon compte</span></div>
       </div>
-      <div class="status">Connecté en tant que <strong id="meLabel">invitéxyz</strong></div>
+      <div class="status">Connecté en tant que <strong id="meLabel">invitézyx</strong></div>
     </div>
 
     <main class="main">
@@ -169,7 +169,7 @@
         <div id="dialogue" class="dialogue" aria-live="polite"></div>
 
         <form id="form" class="input-area">
-          <input id="nick" class="nick" placeholder="Pseudo" value="invitéxyz" required>
+          <input id="nick" class="nick" placeholder="Pseudo" value="invitézyx" required>
           <!-- Sélecteur couleur compact visible en mobile -->
           <select id="colorMobile" class="mobile-color" aria-label="Couleur du pseudo (mobile)">
             <option value="blue">Bleu</option>
@@ -204,7 +204,7 @@
         }
       }
       return {
-        nick: (nick || 'invitéxyz').slice(0, 32),
+        nick: (nick || 'invitézyx').slice(0, 32),
         room: room || '#cafe-des-modes'
       };
     }
@@ -256,13 +256,13 @@
     }
 
     function updateMe(){
-      meLabel.textContent = nickInput.value || 'invitéxyz';
+      meLabel.textContent = nickInput.value || 'invitézyx';
       renderRoster();
     }
     nickInput.addEventListener('input', updateMe);
 
     function renderRoster(){
-      const pseudo = nickInput.value || 'invitéxyz';
+      const pseudo = nickInput.value || 'invitézyx';
       if(!roster) return;
       roster.innerHTML = ['caranormandie','mike-caen','guest_42', pseudo]
         .map(u => '<div class="member">'+escapeHtml(u)+'</div>').join('');
@@ -273,7 +273,7 @@
       e.preventDefault();
       const txt = text.value.trim();
       if(!txt) return;
-      const pseudo = nickInput.value || 'invitéxyz';
+      const pseudo = nickInput.value || 'invitézyx';
       const color = (colorSel && colorSel.value) || (colorMobile && colorMobile.value) || 'blue';
       const payload = pseudo + ': ' + txt;
       lastSent = payload;
