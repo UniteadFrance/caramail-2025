@@ -5,173 +5,67 @@
   <title>Connecté(e)s — 3615celib</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* --- Reset minimal --- */
-    *,*::before,*::after{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e9e9e9;color:#111}
-
-    /* --- Header / bandeau style "Caramail" --- */
-    header{
-      background:linear-gradient(#d7d7d7,#c9c9c9);
-      border-bottom:1px solid #9c9c9c;
-      padding:10px 14px;
-    }
-    header .ttl{font-weight:700;font-size:18px}
-    header .sub{color:#555;font-size:12px;margin-top:2px}
-
-    /* --- Conteneur principal --- */
-    .wrap{max-width:980px;margin:16px auto;padding:0 12px}
-
-    .panel{
-      background:#fdfdfd;
-      border:1px solid #d0d0d0;
-      border-radius:8px;
-      box-shadow:0 1px 0 rgba(255,255,255,.6) inset;
-      overflow:hidden;
-    }
-
-    .panel-hd{
-      padding:10px 12px;
-      background:linear-gradient(#f3f3f3,#e8e8e8);
-      border-bottom:1px solid #dcdcdc;
-      display:flex;align-items:center;gap:10px;flex-wrap:wrap
-    }
-    .count-badge{
-      background:#3a7afe;
-      color:#fff;
-      border-radius:12px;
-      padding:2px 8px;
-      font-size:12px;
-      box-shadow:0 1px 0 rgba(0,0,0,.15) inset;
-    }
-    .muted{color:#777;font-size:12px}
-
-    .panel-bd{padding:12px}
-
-    /* --- Liste par salons --- */
-    .room{
-      border:1px solid #e1e1e1;
-      border-radius:8px;
-      overflow:hidden;
-      margin-bottom:12px;
-      background:#fff;
-    }
-    .room-hd{
-      background:linear-gradient(#f0f0f0,#e5e5e5);
-      border-bottom:1px solid #e1e1e1;
-      padding:8px 12px;
-      display:flex;align-items:center;gap:8px;flex-wrap:wrap
-    }
-    .room-name{font-weight:700}
-    .room-count{color:#555;font-size:12px}
-
-    .room-bd{padding:10px 12px}
-
-    /* --- Liste de pseudos sous forme de pills/liens bleus --- */
-    .users{
-      display:flex;flex-wrap:wrap;gap:8px
-    }
-    .user{
-      display:inline-block;
-      padding:6px 10px;
-      border-radius:16px;
-      background:#fafafa;
-      border:1px solid #ddd;
-      line-height:1;
-      color:#114a9c;
-      text-decoration:none;
-      transition:background .15s,border-color .15s
-    }
-    .user:hover{background:#f0f6ff;border-color:#c6dafc}
-
-    /* Couleurs (si tu en envoies depuis le chat) */
-    .blue{color:#114a9c}
-    .red{color:#b10000}
-    .yellow{color:#886a00}
-    .green{color:#177a3a}
-
-    /* --- Etat vide --- */
-    .empty{
-      padding:24px 10px;color:#777;text-align:center
-    }
-
-    /* --- Responsive --- */
-    @media (max-width:600px){
-      .panel-bd{padding:10px}
-      .room-bd{padding:8px 10px}
-    }
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#111}
+    header{background:#cfcfcf;border-bottom:1px solid #9c9c9c;padding:10px 12px}
+    main{max-width:900px;margin:0 auto;padding:12px}
+    .stats{color:#666;font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}
+    .card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px}
+    .room{font-weight:600;margin-bottom:6px}
+    .pill{display:inline-block;margin:3px 6px 3px 0;padding:6px 10px;border-radius:16px;border:1px solid #dedede;background:#fafafa}
+    .blue{color:#0044cc}.red{color:#c00}.yellow{color:#b8860b}.green{color:#1e7d3b}
+    .muted{color:#888}
   </style>
 </head>
 <body>
   <header>
-    <div class="ttl">Connecté(e)s en temps réel</div>
-    <div class="sub" id="sub">Chargement…</div>
+    <strong>Connecté(e)s en temps réel</strong>
+    <div class="stats" id="stats">Chargement…</div>
   </header>
-
-  <div class="wrap">
-    <div class="panel">
-      <div class="panel-hd">
-        <span id="badge" class="count-badge">0</span>
-        <span class="muted">connecté(e)s actuellement</span>
-      </div>
-      <div class="panel-bd" id="rooms"></div>
-    </div>
-  </div>
+  <main>
+    <div class="grid" id="grid"></div>
+  </main>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const roomsEl = document.getElementById('rooms');
-    const badgeEl = document.getElementById('badge');
-    const subEl   = document.getElementById('sub');
+    const grid  = document.getElementById('grid');
+    const stats = document.getElementById('stats');
 
-    const socket = io(); // rien à configurer, on écoute 'online:list'
+    // On se connecte (aucun paramètre requis)
+    const socket = io();
 
+    // Réception de la liste globale
     socket.on('online:list', (list) => {
-      const users = Array.isArray(list) ? list : [];
-      const total = users.length;
-      badgeEl.textContent = String(total);
-      subEl.textContent = total ? `${total} connecté(e)s actuellement` : 'Aucun(e) connecté(e) pour le moment';
-
-      // regrouper par salon
-      const byRoom = new Map();
-      for (const u of users) {
+      // Regrouper par room
+      const rooms = new Map();
+      (list || []).forEach(u => {
         const r = u.room || '#general';
-        if (!byRoom.has(r)) byRoom.set(r, []);
-        byRoom.get(r).push(u);
-      }
+        if(!rooms.has(r)) rooms.set(r, []);
+        rooms.get(r).push(u);
+      });
 
-      if (!byRoom.size) {
-        roomsEl.innerHTML = `<div class="empty">Personne en ligne pour le moment.</div>`;
+      // Stats
+      const total = list ? list.length : 0;
+      stats.textContent = `${total} connecté(e)s actuellement`;
+
+      // Rendu
+      if (!total) {
+        grid.innerHTML = '<div class="card"><span class="muted">Personne en ligne pour le moment.</span></div>';
         return;
       }
-
-      const html = [...byRoom.entries()]
-        .sort((a,b)=>a[0].localeCompare(b[0]))
-        .map(([room, list]) => {
-          const pills = list
-            .sort((a,b)=> (a.nick||'').localeCompare(b.nick||''))
-            .map(u => `<a class="user ${cssColor(u.color)}" href="#">${esc(u.nick||'invité')}</a>`)
-            .join('');
-          return `
-            <section class="room">
-              <div class="room-hd">
-                <span class="room-name">${esc(room)}</span>
-                <span class="room-count">(${list.length})</span>
-              </div>
-              <div class="room-bd">
-                <div class="users">${pills || '<span class="muted">—</span>'}</div>
-              </div>
-            </section>`;
-        }).join('');
-
-      roomsEl.innerHTML = html;
+      grid.innerHTML = [...rooms.entries()].sort().map(([room, users]) => {
+		const pills = list
+		  .sort((a,b)=> (a.nick||'').localeCompare(b.nick||''))
+		  .map(u => `<a class="user ${cssColor(u.color)}" href="/caramail_dm.html?peer=${encodeURIComponent(u.nick||'')}">${esc(u.nick||'invité')}</a>`)
+		  .join('');
+        return `<div class="card">
+          <div class="room">${escapeHtml(room)} <span class="muted">(${users.length})</span></div>
+          <div>${pills || '<span class="muted">—</span>'}</div>
+        </div>`;
+      }).join('');
     });
 
-    function cssColor(c){
-      const t = String(c||'').toLowerCase();
-      return (t==='red'||t==='green'||t==='yellow'||t==='blue') ? t : 'blue';
-    }
-    function esc(s){return String(s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+    function escapeHtml(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
   </script>
 </body>
 </html>
