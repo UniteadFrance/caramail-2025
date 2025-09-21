@@ -4,11 +4,56 @@
   <meta charset="utf-8">
   <title>CaraMail — Salon (temps réel)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- === MOBILE SCROLL FIX (non-intrusif) === -->
+  <style>
+    /* 1) Pas de scroll global */
+    html, body { height:100%; overflow:hidden; }
+
+    /* 2) La hauteur du wrapper suit la hauteur utile de l’écran */
+    .wrap { height:100vh; }                /* fallback */
+    @supports (height: 100dvh) {
+      .wrap { height:100dvh; }             /* Android/iOS modernes */
+    }
+    /* Fallback universel via variable JS (cf. script plus bas) */
+    .wrap { height: calc(var(--vh, 1vh) * 100); }
+
+    /* 3) Flex pour n’autoriser le scroll que dans la zone messages */
+    .wrap { display:flex; flex-direction:column; }
+    .main { flex:1; min-height:0; display:flex; gap:10px; padding:12px; }
+    .chat-panel { flex:1; display:flex; flex-direction:column; min-height:0; }
+    .dialogue { flex:1; overflow-y:auto; min-height:0;
+                -webkit-overflow-scrolling: touch;  /* scroll fluide iOS */
+                overscroll-behavior: contain;       /* pas de scroll “qui fuit” */
+    }
+
+    /* 4) En mobile, cacher la colonne droite pour éviter un second scroll */
+    @media (max-width: 820px) {
+      .rightcol { display:none !important; }
+      .mobile-color { display:inline-block; }
+      .nick{ width:110px; }
+      .input-area{ gap:6px; }
+      .status{ max-width:40%; }
+    }
+  </style>
+  <script>
+    // 5) iOS/Android : adapter --vh à la hauteur visible (barres d’URL, clavier, etc.)
+    (function(){
+      function setVH(){
+        document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+      }
+      setVH();
+      window.addEventListener('resize', setVH);
+      window.addEventListener('orientationchange', setVH);
+    })();
+  </script>
+  <!-- === END MOBILE SCROLL FIX === -->
+
   <style>
     *{box-sizing:border-box}
-    html,body{margin:0;height:100%;overflow:hidden;font-family:Arial,Helvetica,sans-serif;background:#e6e6e6;color:#111}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e6e6e6;color:#111}
     a{color:#0047cc;text-decoration:underline}
-    .wrap{min-height:100%;display:flex;flex-direction:column}
+    .wrap{min-height:100%;}
     /* Top tabs */
     .topbar{background:#cfcfcf;border-bottom:1px solid #9c9c9c;display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;padding:6px 10px}
     .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;position:relative}
@@ -17,15 +62,12 @@
     .tab.active{background:#fff;border-bottom-color:#fff}
     .tab.active .tab-label{color:#0047cc;text-decoration:underline}
     .status{margin-left:auto;padding-bottom:6px;font-size:12px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
-    /* Layout */
-    .main{flex:1;display:flex;gap:10px;padding:12px;min-height:0}
+    /* Layout base (desktop) */
     .rightcol{width:240px;display:flex;flex-direction:column;gap:10px;min-width:220px}
     .box{background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;padding:10px}
     .members .member{padding:4px 6px;border-bottom:1px dashed #ededed}
-    .chat-panel{flex:1;background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;display:flex;flex-direction:column;min-height:0}
     .header-chat{background:linear-gradient(#efefef,#e6e6e6);padding:10px;border-bottom:1px solid #d0d0d0;display:flex;gap:12px;align-items:center;justify-content:space-between}
     .room{font-weight:bold;color:#0b4a7a}
-    .dialogue{flex:1;padding:10px;background:#fff;overflow-y:auto;min-height:0}
     .message{margin:6px 0;line-height:1.45;font-size:14px}
     .sys{color:#8a8a8a;font-style:italic}
     .msg-pseudo{font-weight:bold;margin-right:6px}
@@ -34,15 +76,9 @@
     .nick{width:140px;padding:8px;border:1px solid #cfcfcf;border-radius:6px}
     .txt{flex:1;padding:8px;border:1px solid #cfcfcf;border-radius:6px}
     .send{padding:8px 12px;background:#0066cc;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-    /* Mobile tweaks */
     .mobile-color{display:none}
-    @media(max-width:820px){
-      .rightcol{display:none}                 /* cache la colonne droite en mobile */
-      .mobile-color{display:inline-block}     /* montre le sélecteur couleur compact */
-      .nick{width:110px}
-      .input-area{gap:6px}
-      .status{max-width:40%}
-    }
+    .dialogue{padding:10px;background:#fff;border-left:1px solid #cfcfcf;border-right:1px solid #cfcfcf}
+    .chat-panel{background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px}
   </style>
 </head>
 <body>
@@ -55,7 +91,7 @@
         <div class="tab"><span class="tab-label">Ami(e)s</span></div>
         <div class="tab"><span class="tab-label">Mon compte</span></div>
       </div>
-      <div class="status">Connecté en tant que <strong id="meLabel">invitéxy</strong></div>
+      <div class="status">Connecté en tant que <strong id="meLabel">invitéxyz</strong></div>
     </div>
 
     <main class="main">
@@ -86,7 +122,7 @@
         <div id="dialogue" class="dialogue" aria-live="polite"></div>
 
         <form id="form" class="input-area">
-          <input id="nick" class="nick" placeholder="Pseudo" value="invitéxy" required>
+          <input id="nick" class="nick" placeholder="Pseudo" value="invitéxyz" required>
           <!-- Sélecteur couleur compact visible en mobile -->
           <select id="colorMobile" class="mobile-color" aria-label="Couleur du pseudo (mobile)">
             <option value="blue">Bleu</option>
@@ -104,15 +140,34 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     // --- Lire les paramètres ?nick= & ?room= depuis l'URL ---
-    const params = new URLSearchParams(location.search);
-    const initialNick = (params.get('nick') || 'invitéxy').slice(0, 32);
-    const initialRoom = params.get('room') || '#cafe-des-modes';
+    function getInitialParams(){
+      const searchParams = new URLSearchParams(location.search);
+      let nick = searchParams.get('nick');
+      let room = searchParams.get('room');
+
+      // Gestion si le # du room a cassé l’URL (hash)
+      const hash = (location.hash || '').replace(/^#/, '');
+      if(hash){
+        const hp = new URLSearchParams(hash);
+        nick = nick || hp.get('nick');
+        room = room || hp.get('room');
+        if(!room){
+          const firstPart = hash.split('&')[0];
+          if(firstPart) room = '#' + decodeURIComponent(firstPart.replace(/^%23/, ''));
+        }
+      }
+      return {
+        nick: (nick || 'invitéxyz').slice(0, 32),
+        room: room || '#cafe-des-modes'
+      };
+    }
+    const init = getInitialParams();
 
     // --- Récup des éléments ---
     const dlg = document.getElementById('dialogue');
     const form = document.getElementById('form');
     const text = document.getElementById('text');
-    const nick = document.getElementById('nick');
+    const nickInput = document.getElementById('nick');
     const colorSel = document.getElementById('color');            // desktop (si présent)
     const colorMobile = document.getElementById('colorMobile');   // mobile compact
     const meLabel = document.getElementById('meLabel');
@@ -120,9 +175,9 @@
     const roomTitle = document.getElementById('roomTitle');
 
     // --- Init UI ---
-    nick.value = initialNick;
-    meLabel.textContent = initialNick;
-    roomTitle.textContent = initialRoom;
+    nickInput.value = init.nick;
+    meLabel.textContent = init.nick;
+    roomTitle.textContent = init.room;
 
     // Sync couleur entre desktop et mobile
     function syncColor(from){
@@ -132,7 +187,6 @@
     }
     if(colorSel) colorSel.addEventListener('change', e => syncColor(e.target));
     if(colorMobile) colorMobile.addEventListener('change', e => syncColor(e.target));
-    // Valeur initiale
     if(colorSel && colorMobile){ colorMobile.value = colorSel.value; }
 
     // --- Socket.IO ---
@@ -155,13 +209,13 @@
     }
 
     function updateMe(){
-      meLabel.textContent = nick.value || 'invitéxy';
+      meLabel.textContent = nickInput.value || 'invitéxyz';
       renderRoster();
     }
-    nick.addEventListener('input', updateMe);
+    nickInput.addEventListener('input', updateMe);
 
     function renderRoster(){
-      const pseudo = nick.value || 'invitéxy';
+      const pseudo = nickInput.value || 'invitéxyz';
       if(!roster) return;
       roster.innerHTML = ['caranormandie','mike-caen','guest_42', pseudo]
         .map(u => '<div class="member">'+escapeHtml(u)+'</div>').join('');
@@ -172,7 +226,7 @@
       e.preventDefault();
       const txt = text.value.trim();
       if(!txt) return;
-      const pseudo = nick.value || 'invitéxy';
+      const pseudo = nickInput.value || 'invitéxyz';
       const color = (colorSel && colorSel.value) || (colorMobile && colorMobile.value) || 'blue';
       const payload = pseudo + ': ' + txt;
       lastSent = payload;
@@ -189,10 +243,10 @@
       line('msg', pseudo, content, 'red');
     });
 
-    line('sys', '', 'Connecté(e) en tant que ' + initialNick + ' • Salon: ' + initialRoom + '.');
+    line('sys', '', 'Connecté(e) en tant que ' + init.nick + ' • Salon: ' + init.room + '.');
   </script>
 
-  <!-- Soudure des onglets si présent -->
+  <!-- Soudure des onglets si tu l'as ajouté -->
   <script src="/caramail_nav.js"></script>
 </body>
 </html>
