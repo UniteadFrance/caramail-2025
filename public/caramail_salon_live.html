@@ -2,42 +2,85 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>CaraMail — Salon (temps réel)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CaraMail — Salon (verrou mobile)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 
-  <!-- === MOBILE SCROLL FIX (non-intrusif) === -->
   <style>
-    /* 1) Pas de scroll global */
-    html, body { height:100%; overflow:hidden; }
-
-    /* 2) La hauteur du wrapper suit la hauteur utile de l’écran */
-    .wrap { height:100vh; }                /* fallback */
-    @supports (height: 100dvh) {
-      .wrap { height:100dvh; }             /* Android/iOS modernes */
+    /* --- RADICAL MOBILE LOCKDOWN --- */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; height: 100%;
+      overflow: hidden !important;              /* aucune barre de scroll globale */
+      overscroll-behavior: none;                /* anti-bounce iOS/Android */
+      touch-action: none;                       /* blocage global, sauf exceptions */
+      font-family: Arial, Helvetica, sans-serif;
+      background: #e6e6e6; color: #111;
     }
-    /* Fallback universel via variable JS (cf. script plus bas) */
-    .wrap { height: calc(var(--vh, 1vh) * 100); }
-
-    /* 3) Flex pour n’autoriser le scroll que dans la zone messages */
-    .wrap { display:flex; flex-direction:column; }
-    .main { flex:1; min-height:0; display:flex; gap:10px; padding:12px; }
-    .chat-panel { flex:1; display:flex; flex-direction:column; min-height:0; }
-    .dialogue { flex:1; overflow-y:auto; min-height:0;
-                -webkit-overflow-scrolling: touch;  /* scroll fluide iOS */
-                overscroll-behavior: contain;       /* pas de scroll “qui fuit” */
+    #app {
+      position: fixed; inset: 0;                /* occupe toute la fenêtre */
+      height: 100svh;                           /* Safari/Chrome récents */
+      height: 100dvh;                           /* dynamic viewport */
+      height: calc(var(--vh, 1vh) * 100);       /* fallback universel */
+      display: flex; flex-direction: column;
     }
 
-    /* 4) En mobile, cacher la colonne droite pour éviter un second scroll */
+    .topbar{background:#cfcfcf;border-bottom:1px solid #9c9c9c;display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;padding:6px 10px}
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;position:relative}
+    .tabs:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:#b5b5b5}
+    .tab{background:#e9e9e9;padding:6px 10px;border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #8f8f8f;border-bottom:1px solid #8f8f8f;border-radius:4px 4px 0 0;font-weight:700;white-space:nowrap}
+    .tab.active{background:#fff;border-bottom-color:#fff}
+    .tab.active .tab-label{color:#0047cc;text-decoration:underline}
+    .status{margin-left:auto;padding-bottom:6px;font-size:12px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+
+    .main { flex: 1 1 auto; min-height: 0; display: flex; gap: 10px; padding: 12px; }
+    .rightcol { width:240px; display:flex; flex-direction:column; gap:10px; min-width:220px }
+    .box{background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;padding:10px}
+    .members .member{padding:4px 6px;border-bottom:1px dashed #ededed}
+
+    .chat-panel {
+      flex: 1 1 auto; display: flex; flex-direction: column;
+      min-height: 0; height: 100%;
+      background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;
+    }
+    .header-chat{background:linear-gradient(#efefef,#e6e6e6);padding:10px;border-bottom:1px solid #d0d0d0;display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .room{font-weight:bold;color:#0b4a7a}
+
+    .dialogue {
+      flex: 1 1 auto; min-height: 0;
+      background:#fff; padding:10px;
+      border-left:1px solid #cfcfcf;border-right:1px solid #cfcfcf;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;        /* seul endroit autorisé à scroller */
+      height: 100%; max-height: 100%;
+    }
+    .message{margin:6px 0;line-height:1.45;font-size:14px}
+    .sys{color:#8a8a8a;font-style:italic}
+    .msg-pseudo{font-weight:bold;margin-right:6px}
+    .pseudo-blue{color:#0044cc}.pseudo-red{color:#cc0000}.pseudo-yellow{color:#b8860b}.pseudo-green{color:#1e7d3b}
+
+    .input-area{
+      display:flex; gap:8px; align-items:center;
+      padding:8px; border-top:1px solid #dcdcdc;
+      background:linear-gradient(#f6f6f6,#ececec);
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    }
+    .nick{width:140px;padding:8px;border:1px solid #cfcfcf;border-radius:6px}
+    .txt{flex:1;padding:8px;border:1px solid #cfcfcf;border-radius:6px}
+    .send{padding:8px 12px;background:#0066cc;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
+    .mobile-color{display:none}
+
     @media (max-width: 820px) {
       .rightcol { display:none !important; }
       .mobile-color { display:inline-block; }
-      .nick{ width:110px; }
-      .input-area{ gap:6px; }
-      .status{ max-width:40%; }
+      .nick{ width:110px }
+      .input-area{ gap:6px }
+      .status{ max-width:40% }
     }
   </style>
+
   <script>
-    // 5) iOS/Android : adapter --vh à la hauteur visible (barres d’URL, clavier, etc.)
     (function(){
       function setVH(){
         document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
@@ -46,90 +89,17 @@
       window.addEventListener('resize', setVH);
       window.addEventListener('orientationchange', setVH);
     })();
+
+    // Bloque tout scroll tactile hors .dialogue
+    document.addEventListener('touchmove', function(e){
+      if (!e.target.closest('.dialogue')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
   </script>
-  <!-- === END MOBILE SCROLL FIX === -->
-
-  <style>
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e6e6e6;color:#111}
-    a{color:#0047cc;text-decoration:underline}
-    .wrap{min-height:100%;}
-    /* Top tabs */
-    .topbar{background:#cfcfcf;border-bottom:1px solid #9c9c9c;display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;padding:6px 10px}
-    .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;position:relative}
-    .tabs:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:#b5b5b5}
-    .tab{background:#e9e9e9;padding:6px 10px;border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #8f8f8f;border-bottom:1px solid #8f8f8f;border-radius:4px 4px 0 0;font-weight:700;white-space:nowrap}
-    .tab.active{background:#fff;border-bottom-color:#fff}
-    .tab.active .tab-label{color:#0047cc;text-decoration:underline}
-    .status{margin-left:auto;padding-bottom:6px;font-size:12px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
-    /* Layout base (desktop) */
-    .rightcol{width:240px;display:flex;flex-direction:column;gap:10px;min-width:220px}
-    .box{background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px;padding:10px}
-    .members .member{padding:4px 6px;border-bottom:1px dashed #ededed}
-    .header-chat{background:linear-gradient(#efefef,#e6e6e6);padding:10px;border-bottom:1px solid #d0d0d0;display:flex;gap:12px;align-items:center;justify-content:space-between}
-    .room{font-weight:bold;color:#0b4a7a}
-    .message{margin:6px 0;line-height:1.45;font-size:14px}
-    .sys{color:#8a8a8a;font-style:italic}
-    .msg-pseudo{font-weight:bold;margin-right:6px}
-    .pseudo-blue{color:#0044cc}.pseudo-red{color:#cc0000}.pseudo-yellow{color:#b8860b}.pseudo-green{color:#1e7d3b}
-    .input-area{padding:8px;border-top:1px solid #dcdcdc;background:linear-gradient(#f6f6f6,#ececec);display:flex;gap:8px;align-items:center}
-    .nick{width:140px;padding:8px;border:1px solid #cfcfcf;border-radius:6px}
-    .txt{flex:1;padding:8px;border:1px solid #cfcfcf;border-radius:6px}
-    .send{padding:8px 12px;background:#0066cc;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-    .mobile-color{display:none}
-    .dialogue{padding:10px;background:#fff;border-left:1px solid #cfcfcf;border-right:1px solid #cfcfcf}
-    .chat-panel{background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px}
-  </style>
-
-<!-- === STABLE MOBILE SCROLL OVERRIDES === -->
-<style>
-  /* Empêche tout scroll global */
-  html, body { height:100%; overflow:hidden; }
-
-  /* Hauteur fixe du wrapper, compatible mobile (dvh + fallback var) */
-  .wrap { height:100vh; }
-  @supports (height: 100dvh) { .wrap { height:100dvh; } }
-  .wrap { height: calc(var(--vh, 1vh) * 100); }
-
-  /* Layout flex : seul le chat scrolle */
-  .wrap { display:flex; flex-direction:column; }
-  .main { flex:1 1 auto; min-height:0; display:flex; gap:10px; padding:12px; }
-  .chat-panel { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; height:100%; }
-  .dialogue {
-    flex:1 1 auto;
-    min-height:0;
-    overflow-y:auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    height:100%;
-    max-height:100%;
-  }
-
-  /* Mobile : on cache la colonne droite */
-  @media (max-width: 820px) {
-    .rightcol { display:none !important; }
-    .mobile-color { display:inline-block; }
-    .nick{ width:110px; }
-    .input-area{ gap:6px; }
-    .status{ max-width:40%; }
-  }
-</style>
-<script>
-  // Var --vh basée sur la hauteur visible (évite les sauts au 1er message)
-  (function(){
-    function setVH(){
-      document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
-    }
-    setVH();
-    window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', setVH);
-  })();
-</script>
-<!-- === END STABLE MOBILE SCROLL OVERRIDES === -->
-
 </head>
 <body>
-  <div class="wrap">
+  <div id="app">
     <div class="topbar">
       <div class="tabs" aria-label="Onglets">
         <div class="tab active"><span class="tab-label">Salon</span></div>
@@ -138,7 +108,7 @@
         <div class="tab"><span class="tab-label">Ami(e)s</span></div>
         <div class="tab"><span class="tab-label">Mon compte</span></div>
       </div>
-      <div class="status">Connecté en tant que <strong id="meLabel">invitézyx</strong></div>
+      <div class="status">Connecté en tant que <strong id="meLabel">invité</strong></div>
     </div>
 
     <main class="main">
@@ -169,8 +139,7 @@
         <div id="dialogue" class="dialogue" aria-live="polite"></div>
 
         <form id="form" class="input-area">
-          <input id="nick" class="nick" placeholder="Pseudo" value="invitézyx" required>
-          <!-- Sélecteur couleur compact visible en mobile -->
+          <input id="nick" class="nick" placeholder="Pseudo" value="invité" required>
           <select id="colorMobile" class="mobile-color" aria-label="Couleur du pseudo (mobile)">
             <option value="blue">Bleu</option>
             <option value="red">Rouge</option>
@@ -186,13 +155,10 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // --- Lire les paramètres ?nick= & ?room= depuis l'URL ---
     function getInitialParams(){
-      const searchParams = new URLSearchParams(location.search);
-      let nick = searchParams.get('nick');
-      let room = searchParams.get('room');
-
-      // Gestion si le # du room a cassé l’URL (hash)
+      const search = new URLSearchParams(location.search);
+      let nick = search.get('nick');
+      let room = search.get('room');
       const hash = (location.hash || '').replace(/^#/, '');
       if(hash){
         const hp = new URLSearchParams(hash);
@@ -203,66 +169,54 @@
           if(firstPart) room = '#' + decodeURIComponent(firstPart.replace(/^%23/, ''));
         }
       }
-      return {
-        nick: (nick || 'invitézyx').slice(0, 32),
-        room: room || '#cafe-des-modes'
-      };
+      return { nick: (nick || 'invité').slice(0,32), room: room || '#cafe-des-modes' };
     }
     const init = getInitialParams();
 
-    // --- Récup des éléments ---
     const dlg = document.getElementById('dialogue');
     const form = document.getElementById('form');
     const text = document.getElementById('text');
     const nickInput = document.getElementById('nick');
-    const colorSel = document.getElementById('color');            // desktop (si présent)
-    const colorMobile = document.getElementById('colorMobile');   // mobile compact
+    const colorSel = document.getElementById('color');
+    const colorMobile = document.getElementById('colorMobile');
     const meLabel = document.getElementById('meLabel');
     const roster = document.getElementById('roster');
     const roomTitle = document.getElementById('roomTitle');
 
-    // --- Init UI ---
     nickInput.value = init.nick;
     meLabel.textContent = init.nick;
     roomTitle.textContent = init.room;
 
-    // Sync couleur entre desktop et mobile
     function syncColor(from){
-      const val = from.value;
-      if(colorSel) colorSel.value = val;
-      if(colorMobile) colorMobile.value = val;
+      const v = from.value;
+      if(colorSel) colorSel.value = v;
+      if(colorMobile) colorMobile.value = v;
     }
     if(colorSel) colorSel.addEventListener('change', e => syncColor(e.target));
     if(colorMobile) colorMobile.addEventListener('change', e => syncColor(e.target));
     if(colorSel && colorMobile){ colorMobile.value = colorSel.value; }
 
-    // --- Socket.IO ---
     const socket = io();
     let lastSent = null;
 
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    }
+    function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
     function line(type, pseudo, content, color){
       const div = document.createElement('div');
       div.className = 'message ' + (type==='sys'?'sys':'');
-      if(type==='sys'){
-        div.textContent = '— ' + content;
-      }else{
-        div.innerHTML = '<span class="msg-pseudo pseudo-' + (color||'blue') + '">' + escapeHtml(pseudo) + '&gt;</span> ' + escapeHtml(content);
-      }
+      if(type==='sys'){ div.textContent = '— ' + content; }
+      else { div.innerHTML = '<span class="msg-pseudo pseudo-'+(color||'blue')+'">'+escapeHtml(pseudo)+'&gt;</span> '+escapeHtml(content); }
       dlg.appendChild(div);
       dlg.scrollTop = dlg.scrollHeight;
     }
 
     function updateMe(){
-      meLabel.textContent = nickInput.value || 'invitézyx';
+      meLabel.textContent = nickInput.value || 'invité';
       renderRoster();
     }
     nickInput.addEventListener('input', updateMe);
 
     function renderRoster(){
-      const pseudo = nickInput.value || 'invitézyx';
+      const pseudo = nickInput.value || 'invité';
       if(!roster) return;
       roster.innerHTML = ['caranormandie','mike-caen','guest_42', pseudo]
         .map(u => '<div class="member">'+escapeHtml(u)+'</div>').join('');
@@ -273,7 +227,7 @@
       e.preventDefault();
       const txt = text.value.trim();
       if(!txt) return;
-      const pseudo = nickInput.value || 'invitézyx';
+      const pseudo = nickInput.value || 'invité';
       const color = (colorSel && colorSel.value) || (colorMobile && colorMobile.value) || 'blue';
       const payload = pseudo + ': ' + txt;
       lastSent = payload;
@@ -293,7 +247,6 @@
     line('sys', '', 'Connecté(e) en tant que ' + init.nick + ' • Salon: ' + init.room + '.');
   </script>
 
-  <!-- Soudure des onglets si tu l'as ajouté -->
   <script src="/caramail_nav.js"></script>
 </body>
 </html>
