@@ -27,45 +27,81 @@
   </main>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const grid  = document.getElementById('grid');
-    const stats = document.getElementById('stats');
+<script>
+  const roomsEl = document.getElementById('rooms');
+  const badgeEl = document.getElementById('badge');
+  const subEl   = document.getElementById('sub');
 
-    // On se connecte (aucun paramètre requis)
-    const socket = io();
+  const socket = io();
 
-    // Réception de la liste globale
-    socket.on('online:list', (list) => {
-      // Regrouper par room
-      const rooms = new Map();
-      (list || []).forEach(u => {
-        const r = u.room || '#general';
-        if(!rooms.has(r)) rooms.set(r, []);
-        rooms.get(r).push(u);
-      });
+  socket.on('online:list', (list) => {
+    const raw = Array.isArray(list) ? list : [];
+    const total = raw.length;
+    badgeEl.textContent = String(total);
+    subEl.textContent = total ? `${total} connecté(e)s actuellement` : 'Aucun(e) connecté(e) pour le moment';
 
-      // Stats
-      const total = list ? list.length : 0;
-      stats.textContent = `${total} connecté(e)s actuellement`;
+    // Normalisation robuste des entrées (ignorer null/undefined, strings, etc.)
+    const users = [];
+    for (const u of raw) {
+      if (!u) continue;
 
-      // Rendu
-      if (!total) {
-        grid.innerHTML = '<div class="card"><span class="muted">Personne en ligne pour le moment.</span></div>';
-        return;
+      // Cas 1: objet {nick,color,room}
+      if (typeof u === 'object') {
+        const nick  = (u.nick  && String(u.nick).trim())  || 'invité';
+        const room  = (u.room  && String(u.room).trim())  || '#general';
+        const color = (u.color && String(u.color).trim()) || 'blue';
+        users.push({ nick, room, color });
+        continue;
       }
-      grid.innerHTML = [...rooms.entries()].sort().map(([room, users]) => {
-		const pills = list
-		  .sort((a,b)=> (a.nick||'').localeCompare(b.nick||''))
-		  .map(u => `<a class="user ${cssColor(u.color)}" href="/caramail_dm.html?peer=${encodeURIComponent(u.nick||'')}">${esc(u.nick||'invité')}</a>`)
-		  .join('');
-        return `<div class="card">
-          <div class="room">${escapeHtml(room)} <span class="muted">(${users.length})</span></div>
-          <div>${pills || '<span class="muted">—</span>'}</div>
-        </div>`;
-      }).join('');
-    });
 
-    function escapeHtml(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-  </script>
+      // Cas 2: simple string => considéré comme nick
+      if (typeof u === 'string') {
+        const nick = u.trim() || 'invité';
+        users.push({ nick, room:'#general', color:'blue' });
+      }
+    }
+
+    // Regrouper par salon
+    const byRoom = new Map();
+    for (const u of users) {
+      const r = u.room || '#general';
+      if (!byRoom.has(r)) byRoom.set(r, []);
+      byRoom.get(r).push(u);
+    }
+
+    if (!byRoom.size) {
+      roomsEl.innerHTML = `<div class="empty">Personne en ligne pour le moment.</div>`;
+      return;
+    }
+
+    const html = [...byRoom.entries()]
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([room, list]) => {
+        const pills = list
+          .sort((a,b)=> a.nick.localeCompare(b.nick))
+          .map(u => `<a class="user ${cssColor(u.color)}" href="/caramail_dm.html?peer=${encodeURIComponent(u.nick)}">${esc(u.nick)}</a>`)
+          .join('');
+        return `
+          <section class="room">
+            <div class="room-hd">
+              <span class="room-name">${esc(room)}</span>
+              <span class="room-count">(${list.length})</span>
+            </div>
+            <div class="room-bd">
+              <div class="users">${pills || '<span class="muted">—</span>'}</div>
+            </div>
+          </section>`;
+      }).join('');
+
+    roomsEl.innerHTML = html;
+  });
+
+  function cssColor(c){
+    const t = String(c||'').toLowerCase();
+    return (t==='red'||t==='green'||t==='yellow'||t==='blue') ? t : 'blue';
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+</script>
+
 </body>
 </html>
