@@ -96,6 +96,38 @@ io.on("connection", (socket) => {
   });
 });
 
+// --- Présence ultra simple (HTTP polling) ---
+app.use(express.json()); // si déjà présent, ne pas dupliquer
+
+const presence = new Map(); // key -> { nick, room, color, last }
+
+// Nettoyage des présences trop anciennes (inactive > 40s)
+function prunePresence() {
+  const now = Date.now();
+  for (const [k, v] of presence.entries()) {
+    if (now - v.last > 40000) presence.delete(k);
+  }
+}
+
+// POST /presence  { nick, room, color }
+// Identifie un "utilisateur" par IP + nick (simple et suffisant)
+app.post('/presence', (req, res) => {
+  const nick  = String(req.body?.nick  || 'invité').trim().slice(0, 32);
+  const room  = String(req.body?.room  || '#general').trim().slice(0, 64);
+  const color = String(req.body?.color || 'blue').trim().slice(0, 16);
+  const key   = `${req.ip}|${nick.toLowerCase()}`;
+
+  presence.set(key, { nick, room, color, last: Date.now() });
+  prunePresence();
+  res.json({ ok: true });
+});
+
+// GET /presence -> { list: [...] }
+app.get('/presence', (req, res) => {
+  prunePresence();
+  res.json({ list: Array.from(presence.values()) });
+});
+
 const PORT = 3000;
 server.listen(PORT, () => {
   console.log("Serveur CaraMail lancé sur http://localhost:" + PORT);
