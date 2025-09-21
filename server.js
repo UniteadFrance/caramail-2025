@@ -40,6 +40,45 @@ io.on('connection', (socket) => {
   });
 });
 
+// --- Helpers pour DM -------------------------------------------------
+function normNick(s){ return String(s||'').trim().slice(0,32); }
+function dmRoomName(a,b){
+  const A = normNick(a).toLowerCase();
+  const B = normNick(b).toLowerCase();
+  return 'dm:' + [A,B].sort().join('|'); // ex: dm:alex|mika
+}
+
+// --- Socket.IO : DM ---------------------------------------------------
+io.on('connection', (socket) => {
+  // nick actuel associé à ce socket (tu peux reprendre ta logique existante)
+  const myNick = normNick(socket.handshake.query?.nick || 'invité-' + socket.id.slice(-4));
+
+  // Le client rejoint une room DM avec quelqu’un
+  socket.on('dm:join', ({ peer }) => {
+    const room = dmRoomName(myNick, peer);
+    socket.join(room);
+    // Optionnel: informer l’autre que je suis arrivé
+    io.to(room).emit('dm:info', { room, who: myNick, type:'join' });
+  });
+
+  // Envoi d’un message privé
+  socket.on('dm:send', ({ peer, text }) => {
+    const msg = String(text||'').slice(0, 2000); // sécurité longueur
+    if (!msg) return;
+    const room = dmRoomName(myNick, peer);
+    io.to(room).emit('dm:msg', {
+      room, from: myNick, text: msg, ts: Date.now()
+    });
+  });
+
+  // Optionnel: quitter la room DM (pas obligatoire)
+  socket.on('dm:leave', ({ peer }) => {
+    const room = dmRoomName(myNick, peer);
+    socket.leave(room);
+    io.to(room).emit('dm:info', { room, who: myNick, type:'leave' });
+  });
+});
+
 // Sert tes fichiers HTML/CSS/JS (mets-les dans un dossier "public")
 app.use(express.static("public"));
 
