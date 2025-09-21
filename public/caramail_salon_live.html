@@ -105,34 +105,5 @@
       dialogue.scrollTop = dialogue.scrollHeight; // auto scroll en bas
     }
   </script>
-  <script>
-  // Essayons de récupérer nick / couleur / salon depuis la page
-  function getNick()  { return (document.getElementById('nickInput')?.value || localStorage.getItem('nick') || 'invité').trim(); }
-  function getColor() { return (document.getElementById('colorSelect')?.value || 'blue').trim(); }
-
-  // Le salon peut venir du paramètre ?room=... ou d'un fallback
-  function getRoom()  { return (new URLSearchParams(location.search).get('room') || '#general').trim(); }
-
-  async function pingPresence() {
-    try {
-      await fetch('/presence', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nick: getNick(), room: getRoom(), color: getColor() })
-      });
-    } catch (e) {
-      // Silencieux: si ça rate une fois ce n'est pas grave
-    }
-  }
-
-  // Ping tout de suite, puis toutes les 20 secondes
-  pingPresence();
-  setInterval(pingPresence, 20000);
-
-  // Optionnel: si l'utilisateur change son pseudo/couleur, on repinge
-  document.getElementById('nickInput')?.addEventListener('change', pingPresence);
-  document.getElementById('colorSelect')?.addEventListener('change', pingPresence);
-</script>
-
 </body>
 </html>
