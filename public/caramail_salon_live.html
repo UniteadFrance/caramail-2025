@@ -80,6 +80,53 @@
     .dialogue{padding:10px;background:#fff;border-left:1px solid #cfcfcf;border-right:1px solid #cfcfcf}
     .chat-panel{background:#f7f7f7;border:1px solid #cfcfcf;border-radius:6px}
   </style>
+
+<!-- === STABLE MOBILE SCROLL OVERRIDES === -->
+<style>
+  /* Empêche tout scroll global */
+  html, body { height:100%; overflow:hidden; }
+
+  /* Hauteur fixe du wrapper, compatible mobile (dvh + fallback var) */
+  .wrap { height:100vh; }
+  @supports (height: 100dvh) { .wrap { height:100dvh; } }
+  .wrap { height: calc(var(--vh, 1vh) * 100); }
+
+  /* Layout flex : seul le chat scrolle */
+  .wrap { display:flex; flex-direction:column; }
+  .main { flex:1 1 auto; min-height:0; display:flex; gap:10px; padding:12px; }
+  .chat-panel { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; height:100%; }
+  .dialogue {
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    height:100%;
+    max-height:100%;
+  }
+
+  /* Mobile : on cache la colonne droite */
+  @media (max-width: 820px) {
+    .rightcol { display:none !important; }
+    .mobile-color { display:inline-block; }
+    .nick{ width:110px; }
+    .input-area{ gap:6px; }
+    .status{ max-width:40%; }
+  }
+</style>
+<script>
+  // Var --vh basée sur la hauteur visible (évite les sauts au 1er message)
+  (function(){
+    function setVH(){
+      document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+    }
+    setVH();
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+  })();
+</script>
+<!-- === END STABLE MOBILE SCROLL OVERRIDES === -->
+
 </head>
 <body>
   <div class="wrap">
