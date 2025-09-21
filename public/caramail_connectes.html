@@ -32,76 +32,61 @@
   const badgeEl = document.getElementById('badge');
   const subEl   = document.getElementById('sub');
 
-  const socket = io();
+  function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+  function cssColor(c){const t=(c||'').toLowerCase();return (t==='red'||t==='green'||t==='yellow'||t==='blue')?t:'blue';}
 
-  socket.on('online:list', (list) => {
-    const raw = Array.isArray(list) ? list : [];
-    const total = raw.length;
-    badgeEl.textContent = String(total);
-    subEl.textContent = total ? `${total} connecté(e)s actuellement` : 'Aucun(e) connecté(e) pour le moment';
+  async function refreshPresence() {
+    try {
+      const r = await fetch('/presence',{cache:'no-store'});
+      const data = await r.json();
+      const list = Array.isArray(data.list) ? data.list : [];
 
-    // Normalisation robuste des entrées (ignorer null/undefined, strings, etc.)
-    const users = [];
-    for (const u of raw) {
-      if (!u) continue;
+      badgeEl.textContent = String(list.length);
+      subEl.textContent = list.length
+        ? `${list.length} connecté(e)s actuellement`
+        : 'Aucun(e) connecté(e) pour le moment';
 
-      // Cas 1: objet {nick,color,room}
-      if (typeof u === 'object') {
-        const nick  = (u.nick  && String(u.nick).trim())  || 'invité';
-        const room  = (u.room  && String(u.room).trim())  || '#general';
-        const color = (u.color && String(u.color).trim()) || 'blue';
-        users.push({ nick, room, color });
-        continue;
+      // Grouper par salon
+      const byRoom = new Map();
+      for (const u of list) {
+        const room = (u.room || '#general').trim();
+        if (!byRoom.has(room)) byRoom.set(room, []);
+        byRoom.get(room).push(u);
       }
 
-      // Cas 2: simple string => considéré comme nick
-      if (typeof u === 'string') {
-        const nick = u.trim() || 'invité';
-        users.push({ nick, room:'#general', color:'blue' });
+      if (!byRoom.size) {
+        roomsEl.innerHTML = `<div class="empty">Personne en ligne pour le moment.</div>`;
+        return;
       }
+
+      const html = [...byRoom.entries()]
+        .sort((a,b)=>a[0].localeCompare(b[0]))
+        .map(([room, members]) => {
+          const pills = members
+            .sort((a,b)=> (a.nick||'').localeCompare(b.nick||''))
+            .map(u => `<a class="user ${cssColor(u.color)}" href="/caramail_dm.html?peer=${encodeURIComponent(u.nick||'invité')}">${esc(u.nick||'invité')}</a>`)
+            .join('');
+          return `
+            <section class="room">
+              <div class="room-hd">
+                <span class="room-name">${esc(room)}</span>
+                <span class="room-count">(${members.length})</span>
+              </div>
+              <div class="room-bd"><div class="users">${pills || '<span class="muted">—</span>'}</div></div>
+            </section>`;
+        }).join('');
+
+      roomsEl.innerHTML = html;
+    } catch (e) {
+      subEl.textContent = 'Erreur de chargement…';
     }
-
-    // Regrouper par salon
-    const byRoom = new Map();
-    for (const u of users) {
-      const r = u.room || '#general';
-      if (!byRoom.has(r)) byRoom.set(r, []);
-      byRoom.get(r).push(u);
-    }
-
-    if (!byRoom.size) {
-      roomsEl.innerHTML = `<div class="empty">Personne en ligne pour le moment.</div>`;
-      return;
-    }
-
-    const html = [...byRoom.entries()]
-      .sort((a,b)=>a[0].localeCompare(b[0]))
-      .map(([room, list]) => {
-        const pills = list
-          .sort((a,b)=> a.nick.localeCompare(b.nick))
-          .map(u => `<a class="user ${cssColor(u.color)}" href="/caramail_dm.html?peer=${encodeURIComponent(u.nick)}">${esc(u.nick)}</a>`)
-          .join('');
-        return `
-          <section class="room">
-            <div class="room-hd">
-              <span class="room-name">${esc(room)}</span>
-              <span class="room-count">(${list.length})</span>
-            </div>
-            <div class="room-bd">
-              <div class="users">${pills || '<span class="muted">—</span>'}</div>
-            </div>
-          </section>`;
-      }).join('');
-
-    roomsEl.innerHTML = html;
-  });
-
-  function cssColor(c){
-    const t = String(c||'').toLowerCase();
-    return (t==='red'||t==='green'||t==='yellow'||t==='blue') ? t : 'blue';
   }
-  function esc(s){return String(s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+
+  // Premier chargement, puis toutes les 5s
+  refreshPresence();
+  setInterval(refreshPresence, 5000);
 </script>
+
 
 </body>
 </html>
